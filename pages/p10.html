@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>How Kun builds &mdash; Kun Chen, mapped</title>
+<meta name="description" content="The habits that repeat across Kun Chen's repos, each checked against at least two of them, and the working method his own instruction file and workflow videos describe." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#reading">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box bb mono">SIDE BUILDS AND PATTERNS &middot; PAGE 10 OF 11</span><span class="mono">patterns across repos &middot; working method</span></div>
+  <h1>How Kun builds</h1>
+  <div class="authors">The habits that repeat across the repos, and the task pipeline he hands to his own agents.</div>
+  <div class="paperlink" style="border-left-color:var(--def)"><span class="lbl">Source</span><a href="https://github.com/kunchenguid/kun/blob/main/ENTRY.md" target="_blank" rel="noopener">kunchenguid/kun &middot; ENTRY.md &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Read enough of Kun's repos and the same moves keep turning up. Each README opens by naming a problem. The output is shaped for an agent to read. A skill ships next to the binary. Tools run on your machine and reuse logins you already have. Claims come with a benchmark, and the tools call each other. His own instruction file turns this into a task pipeline: research, plan in a visual artifact, build the simplest thing, then validate adversarially. His videos add the human side. He spends his attention at the start and end of a task and lets agents fill the middle.</div>
+
+  <p class="lead">This is a reading of the repos, not a manifesto Kun wrote. Each pattern was checked against at least two repos; exceptions are named.</p>
+
+  <div class="scroll"><table class="kv">
+    <tr><th>Pattern</th><th>Repos checked</th></tr>
+    <tr><td>Tagline, then a problem paragraph</td><td>justroll, rough-cut-axi, autopreso, treehouse, firstmate, headless, vision</td></tr>
+    <tr><td>Agent-first output (TOON, <code>help[]</code> hints)</td><td>chrome-devtools-axi, quota-axi, tasks-axi, gh-axi, lavish-axi</td></tr>
+    <tr><td>Skill shipped beside the binary</td><td>gh-axi, lavish-axi, quota-axi, chrome-devtools-axi, tasks-axi; skill-only: vision, headless</td></tr>
+    <tr><td>Local-first, no new credentials</td><td>lavish-axi, backpass, quota-axi, headless</td></tr>
+    <tr><td>Benchmark as the argument</td><td>axi, superpowers-bench, org-bench</td></tr>
+    <tr><td>release-please + CI badges</td><td>gnhf, lavish-axi, backpass, justroll, gh-axi, m87 (and others)</td></tr>
+    <tr><td>Tools that use each other</td><td>vision &rarr; lavish, backpass &rarr; lavish, firstmate &rarr; treehouse + no-mistakes</td></tr>
+    <tr><td>Names with a wink</td><td>gnhf, no-mistakes, justroll, lavish</td></tr>
+    <tr><td>&ldquo;No PRs&rdquo; on personal repos</td><td>kun, dotfiles</td></tr>
+  </table></div>
+
+  <h2 id="readme">The README is the argument</h2>
+  <p>Most of the tool READMEs follow one shape. There is a centred title, a row of badges, and then one <code>h3</code> line that states the whole idea. Treehouse's is &ldquo;Manage worktrees without managing worktrees.&rdquo; (A worktree is a second checkout of the same git repo, so two agents can edit in parallel.) Next comes a short paragraph about the reader's pain, and only then the tool. justroll shows it most plainly:</p>
+  <blockquote class="q">You want to record a talking-head video over a couple of screens.<span class="cite"><a href="https://github.com/kunchenguid/justroll" target="_blank" rel="noopener">justroll README</a></span></blockquote>
+  <p>The next sentence is the &ldquo;but&rdquo;: OBS scenes, a forgotten second display, an evening spent lining up audio. rough-cut-axi and trial-by-combat open with &ldquo;You want&rdquo; too. autopreso uses the past tense (&ldquo;You wanted to give the talk, not build the deck.&rdquo;). Treehouse and headless ask a question instead. The shape is common but not universal: gnhf, gh-axi and the dotfiles README have no <code>h3</code> tagline. The discipline: name the problem in one sentence before shipping the tool.</p>
+
+  <h2 id="agents">Built for the agent as the user</h2>
+  <p>The AXI spec (page 2) sets the habit. Output is in <a class="lnk" href="https://toonformat.dev/" target="_blank" rel="noopener">TOON</a>, a compact, indented text format. The spec claims about 40% fewer tokens than JSON, a figure Kun reports himself. Every response ends with a <code>help[]</code> block that suggests the next command. chrome-devtools-axi prints <code>Run `chrome-devtools-axi click @g1:1` ...</code> after opening a page, and quota-axi and tasks-axi end their sample output the same way.</p>
+  <p>The second half of the pattern is distribution. Each AXI ships an <a class="lnk" href="https://agentskills.io" target="_blank" rel="noopener">Agent Skill</a>, a small instruction file the agent loads only when the task calls for it, installed with one line:</p>
+  <pre class="code-block"><code>npx skills add kunchenguid/gh-axi --skill gh-axi -g</code></pre>
+  <p>The same line appears for lavish-axi, quota-axi, chrome-devtools-axi and tasks-axi. gh-axi's skill is a &ldquo;discovery stub&rdquo; that defers to the live CLI help, so an installed copy can't go stale. Some repos skip the binary entirely: vision and headless are skills and nothing else.</p>
+
+  <h2 id="local">Local-first, and no new keys</h2>
+  <p>The tools run where your data already lives, and they reuse logins you already have. lavish-axi calls itself local-first, and its hosted sharing is opt-in. backpass reads agent transcripts straight off disk (or over SSH to your own machines). Its README says it has no API keys of its own, so every model call goes through a harness you have already logged into. quota-axi reads the local auth files of the agents you run and calls only first-party endpoints. It reads the macOS Keychain only after you grant permission. headless goes furthest. It sets up a remote machine with the admin password left in your secret store, and the agent only ever names the entry. The position: a new tool should not become a new place where your credentials sit.</p>
+
+  <h2 id="bench">Benchmarks as arguments</h2>
+  <p>When Kun claims a design is better, he usually builds a harness to test it. All of the figures below are his own, self-reported runs.</p>
+  <ul>
+    <li><b><a class="lnk" href="https://github.com/kunchenguid/axi" target="_blank" rel="noopener">axi</a></b> publishes two tables, both run on Claude Sonnet 4.6. The browser benchmark has 490 runs (14 tasks &times; 7 conditions &times; 5 repeats), and chrome-devtools-axi scores 100% at the lowest average cost. The GitHub benchmark has 425 runs, with gh-axi at 100% against 86&ndash;87% for the <code>gh</code> CLI and GitHub MCP (Model Context Protocol, the standard tool-server interface).</li>
+    <li><b><a class="lnk" href="https://github.com/kunchenguid/superpowers-bench" target="_blank" rel="noopener">superpowers-bench</a></b> asks whether an agent picks the right skill without being told. It runs 20 tasks, with and without a hint, across Claude Code, Codex and OpenCode, and grades skill selection by precision and recall. The README describes the design. This page does not repeat its scores.</li>
+    <li><b><a class="lnk" href="https://kunchenguid.substack.com/p/org-bench-lets-simulate-the-org-charts" target="_blank" rel="noopener">org-bench</a></b> (written up on Substack; the repo has no README) wires six well-known org-chart memes as multi-agent teams. Every agent and the judge run on gpt-5.4, and each team builds the same spreadsheet app. The judge's scores ranged from 3.00 to 3.62. The more useful finding is about how each topology failed. In the fully connected team, every peer tested the formula bar and nobody checked the arithmetic.</li>
+  </ul>
+  <p>The habit cuts both ways: in his June video he warns against installing popular skills that publish no evaluation.</p>
+
+  <h2 id="plumbing">Plumbing, dogfooding, names</h2>
+  <p><b>Release hygiene.</b> Most of the npm tools carry a CI badge and a <code>release-please</code> badge. release-please is a GitHub Action that turns conventional commit messages into version bumps and changelogs. Among the READMEs pulled for this map, it shows up on gnhf, lavish-axi, backpass, justroll, gh-axi, chrome-devtools-axi, tasks-axi, autopreso and m87. no-mistakes and runner-up use their own release workflow instead.</p>
+  <p><b>Dogfooding.</b> The tools are built from each other. vision's review board runs on lavish-axi, launched through <code>npx -y lavish-axi</code>. backpass's default review UI needs lavish-axi on your PATH. firstmate gives each task a treehouse worktree and ships projects through no-mistakes. In the high-throughput video, firstmate calls quota-axi before it dispatches an agent, so work goes to whichever subscription has the most quota left. The kun repo's own ENTRY.md routes validation through no-mistakes and planning through Lavish.</p>
+  <p><b>Names.</b> gnhf is &ldquo;good night, have fun&rdquo;, what he tells his agents before bed. no-mistakes makes sense once you type it: <code>git push no-mistakes</code>. justroll's tagline opens with &ldquo;We're rolling.&rdquo; In the June video he says Lavish was nearly called the filthy rich editor.</p>
+  <p><b>PR policy.</b> The tools take contributions; gnhf has a CONTRIBUTING.md, for example. The personal repos do not. The kun README says the repo is his own knowledge base, so it does not accept PRs. The dotfiles README is blunter:</p>
+  <blockquote class="q">Feature requests and pull requests are not accepted here, and PRs are auto-closed.<span class="cite"><a href="https://github.com/kunchenguid/dotfiles" target="_blank" rel="noopener">dotfiles README</a></span></blockquote>
+
+  <h2 id="method">The working method</h2>
+  <p>ENTRY.md is the instruction text Kun gives an agent that is acting on his behalf. For feature work it sets a fixed order: research, planning, implementation, validation. A bug fix replaces planning with reproduction. A refactor replaces it with guardrails, meaning tests added before anything moves. Planning means a Lavish HTML artifact with SVG diagrams and open questions, revised until the user approves. Implementation gets one line:</p>
+  <blockquote class="q">Find the simplest solution that satisifies the requirements. Avoid adding anything that's not strictly required.<span class="cite"><a href="https://github.com/kunchenguid/kun/blob/main/ENTRY.md" target="_blank" rel="noopener">kun / ENTRY.md</a></span></blockquote>
+  <p>(The typo is in the original.) Validation is adversarial: use the no-mistakes gate if the repo has a remote, and a fresh subagent review if it doesn't.</p>
+
+  <figure class="fig wide"><div class="media"><svg class="dg" viewBox="0 0 820 320" role="img" aria-label="Kun's task pipeline: research, plan artifact, simplest implementation, adversarial validation">
+    <text x="307" y="24" text-anchor="middle" class="t-off" font-size="11">human: picks options</text>
+    <line x1="307" y1="30" x2="307" y2="46" class="ln-off"/><polygon points="303,44 311,44 307,50" class="ah-off"/>
+    <rect x="15" y="52" width="175" height="96" rx="8" class="box"/>
+    <text x="102" y="76" text-anchor="middle" class="t-ink" font-size="12" font-weight="600">1 RESEARCH</text>
+    <text x="102" y="98" text-anchor="middle" font-size="11">repo + outside context</text>
+    <text x="102" y="116" text-anchor="middle" font-size="11">known playbooks,</text>
+    <text x="102" y="134" text-anchor="middle" font-size="11">common pitfalls</text>
+    <rect x="220" y="52" width="175" height="96" rx="8" class="box-def"/>
+    <text x="307" y="76" text-anchor="middle" class="t-def" font-size="12" font-weight="600">2 PLAN ARTIFACT</text>
+    <text x="307" y="98" text-anchor="middle" font-size="11">Lavish HTML page</text>
+    <text x="307" y="116" text-anchor="middle" font-size="11">options, SVGs, open Qs</text>
+    <text x="307" y="134" text-anchor="middle" font-size="11">iterate until approved</text>
+    <rect x="425" y="52" width="175" height="96" rx="8" class="box"/>
+    <text x="512" y="76" text-anchor="middle" class="t-ink" font-size="12" font-weight="600">3 IMPLEMENT</text>
+    <text x="512" y="98" text-anchor="middle" font-size="11">simplest solution</text>
+    <text x="512" y="116" text-anchor="middle" font-size="11">that meets the</text>
+    <text x="512" y="134" text-anchor="middle" font-size="11">requirements</text>
+    <rect x="630" y="52" width="175" height="96" rx="8" class="box-ok"/>
+    <text x="717" y="76" text-anchor="middle" class="t-ok" font-size="12" font-weight="600">4 VALIDATE</text>
+    <text x="717" y="98" text-anchor="middle" font-size="11">adversarial review</text>
+    <text x="717" y="116" text-anchor="middle" font-size="11">in a fresh context,</text>
+    <text x="717" y="134" text-anchor="middle" font-size="11">end-to-end evidence</text>
+    <line x1="190" y1="100" x2="214" y2="100" class="ln"/><polygon points="212,95 212,105 220,100" class="ah"/>
+    <line x1="395" y1="100" x2="419" y2="100" class="ln"/><polygon points="417,95 417,105 425,100" class="ah"/>
+    <line x1="600" y1="100" x2="624" y2="100" class="ln"/><polygon points="622,95 622,105 630,100" class="ah"/>
+    <text x="512" y="40" text-anchor="middle" class="t-dim" font-size="10.5">agents fill the middle</text>
+    <line x1="717" y1="148" x2="717" y2="162" class="ln"/>
+    <line x1="557" y1="162" x2="757" y2="162" class="ln"/>
+    <line x1="557" y1="162" x2="557" y2="176" class="ln"/><polygon points="553,174 561,174 557,182" class="ah"/>
+    <line x1="757" y1="162" x2="757" y2="176" class="ln"/><polygon points="753,174 761,174 757,182" class="ah"/>
+    <rect x="470" y="184" width="175" height="52" rx="7" class="box-ok"/>
+    <text x="557" y="205" text-anchor="middle" class="t-ink" font-size="11">repo has a remote</text>
+    <text x="557" y="224" text-anchor="middle" class="t-ok" font-size="11">git push no-mistakes</text>
+    <rect x="660" y="184" width="150" height="52" rx="7" class="box"/>
+    <text x="735" y="205" text-anchor="middle" class="t-ink" font-size="11">local only</text>
+    <text x="735" y="224" text-anchor="middle" font-size="11">subagent review</text>
+    <text x="230" y="205" text-anchor="middle" class="t-off" font-size="11">human: judges the PR,</text>
+    <text x="230" y="223" text-anchor="middle" class="t-off" font-size="11">reads risk + evidence</text>
+    <line x1="466" y1="210" x2="376" y2="210" class="ln-off"/><polygon points="378,205 378,215 370,210" class="ah-off"/>
+    <rect x="15" y="254" width="790" height="56" rx="8" class="box-off"/>
+    <text x="30" y="276" class="t-off" font-size="11">step 2 swaps by task type:</text>
+    <text x="30" y="296" font-size="11">bug fix &#8594; reproduce end to end first   &#183;   refactor &#8594; add guardrail tests first   &#183;   explain &#8594; explainer artifact</text>
+  </svg></div><figcaption>The feature-development path from ENTRY.md, with the human checkpoints taken from his June workflow video. The bug-fix, refactor and explainer paths swap out step 2.</figcaption></figure>
+
+  <p>Four videos fill in the human side. In the <a class="lnk" href="https://www.youtube.com/watch?v=iQyg-KypKAA" target="_blank" rel="noopener">June workflow walkthrough</a> he works almost entirely in the terminal, to keep his hands on the keyboard and to have the same setup on every device. He talks to agents by voice, keeps his global memory file short, and moves conditional knowledge into skills. The central move is how he treats a finished task. He doesn't read every diff. He acts like an engineering director: he sets up the process, sends the change through no-mistakes, and decides how closely to review from the risk assessment and the evidence attached to the PR. His time goes to the start (planning in Lavish) and the end (holding the quality bar). The middle belongs to agents, and the longer the middle runs, the more tasks run in parallel. gnhf stretches it overnight, treehouse keeps parallel sessions apart, and firstmate takes over the juggling of tabs.</p>
+  <p>The <a class="lnk" href="https://www.youtube.com/watch?v=5N-okeDdIuI" target="_blank" rel="noopener">July dev-environment video</a> starts from reproducibility. A fresh Mac gets its whole setup from Nix and nix-darwin, so a machine an agent has broken can be rebuilt in one step. The <a class="lnk" href="https://www.youtube.com/watch?v=MSbacZ99E14" target="_blank" rel="noopener">September high-throughput video</a> runs everything through a single firstmate conversation. A dispatch rules file, which firstmate writes from his stated preferences, picks the harness and model for each kind of task. He hides the tool-call stream: attention, not tokens, is the bottleneck. The <a class="lnk" href="https://www.youtube.com/watch?v=UvcH1hKM-mQ" target="_blank" rel="noopener">November work-from-anywhere video</a> adds machines. A headless Mac mini on Tailscale hosts remote &ldquo;secondmates&rdquo; that keep working while the laptop is closed, and he can reach the same sessions from his phone over SSH.</p>
+  <p>The same idea runs through all of it. Every tool removes one reason for the human to sit in the loop, and the human's own work is to plan well and judge the result.</p>
+
+  <div class="callout">Next: <a class="lnk" href="p11.html">Sources</a> &middot; Back to <a class="lnk" href="../index.html#reading">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 10 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

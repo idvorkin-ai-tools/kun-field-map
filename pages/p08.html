@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>backpass and the distilled self &mdash; Kun Chen, mapped</title>
+<meta name="description" content="How backpass treats AGENTS.md as weights trained on past session transcripts, and how the same idea, pointed at a person or a project, gives the /kun skill, OPINIONS.md and the vision skill." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#memory">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">MEMORY YOU TRAIN &middot; PAGE 08 OF 11</span><span class="mono">backpass &middot; AGENTS.md &middot; /kun &middot; OPINIONS.md &middot; vision</span></div>
+  <h1>backpass and the distilled self</h1>
+  <div class="authors">Instruction files as weights you train from evidence, and the same move applied to a person and to a project.</div>
+  <div class="paperlink" style="border-left-color:var(--off)"><span class="lbl">Source</span><a href="https://kunchenguid.substack.com/p/your-agentsmd-is-a-neural-net" target="_blank" rel="noopener">&ldquo;Your AGENTS.md is a Neural Net&rdquo; (Substack, 2026-08-23) &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Kun argues that a project's AGENTS.md behaves like a small set of trained weights. Every agent session is a forward pass, and the transcript it leaves behind is the loss signal. <code>backpass</code> runs the backward pass: it reads those transcripts and proposes a handful of edits, each backed by verbatim quotes from at least two sessions and kept under a token budget. Nothing is written until you accept the edits. Point the same idea at a person and you get OPINIONS.md and the <code>/kun</code> skill. Point it at a repo's history and you get the <code>vision</code> skill.</div>
+
+  <p class="lead">Most people maintain their agent instruction files the way they maintain a junk drawer. Something goes wrong, a rule goes in, and nothing ever comes out. Kun's view is that the data needed to do better is already on disk. Every coding agent writes a transcript of what it was asked, what it did, which rule it followed and where it tripped. This page covers the tool he built to learn from that data, then the two places he applied the same idea outside a repo's instruction file.</p>
+
+  <h2 id="bad-states">Four ways a memory file goes wrong</h2>
+  <p>An <b>AGENTS.md</b> (or CLAUDE.md) is a markdown file the agent harness loads into the system prompt at the start of every session in a repo. Kun names four states such a file drifts into after a few months. It can be <b>empty</b>, so the agent rediscovers the same facts every session. It can be <b>bloated</b>, with every one-off incident turned into a permanent rule; each line costs tokens on every future session and dilutes the rules that matter. It can be <b>stale</b>, describing a build system that no longer exists. Or it can be <b>drifted</b>, with the Claude and Codex copies saying different things.</p>
+  <p>His diagnosis is that all four come from the same habit. The file gets edited one anecdote at a time, and appending is much easier than consolidating or pruning.</p>
+
+  <h2 id="mapping">The training-loop mapping</h2>
+  <p>The essay's central move is to borrow the vocabulary of neural-net training literally. The instruction file is the <b>weights</b>: it shapes how the agent behaves before it reads a line of code. A session is a <b>forward pass</b>, which uses the weights without changing them. The gap between what the agent did and what you wanted is the <b>loss</b>: it used the wrong package manager, ignored a rule that was right there, or followed a rule that was wrong. Reading transcripts and nudging the file is the <b>backward pass</b>. The token budget is the <b>model size</b>, and the number of edits allowed per run is the <b>learning rate</b>.</p>
+
+  <figure class="fig wide"><div class="media"><svg class="dg" viewBox="0 0 820 300" role="img" aria-label="The backpass training loop: AGENTS.md weights, agent session, transcript, backpass analysis, proposed edits, human apply, back to AGENTS.md">
+    <rect class="box box-off" x="30" y="36" width="220" height="68" rx="8"/>
+    <text class="t-ink" x="140" y="64" text-anchor="middle" font-size="14">AGENTS.md + skills</text>
+    <text class="t-off" x="140" y="86" text-anchor="middle" font-size="11.5">weights &middot; 5k-token budget</text>
+
+    <rect class="box" x="300" y="36" width="220" height="68" rx="8"/>
+    <text class="t-ink" x="410" y="64" text-anchor="middle" font-size="14">agent session</text>
+    <text class="t-dim" x="410" y="86" text-anchor="middle" font-size="11.5">forward pass &middot; file untouched</text>
+
+    <rect class="box" x="570" y="36" width="220" height="68" rx="8"/>
+    <text class="t-ink" x="680" y="64" text-anchor="middle" font-size="14">transcript on disk</text>
+    <text class="t-dim" x="680" y="86" text-anchor="middle" font-size="11.5">the loss signal</text>
+
+    <rect class="box box-def" x="570" y="200" width="220" height="68" rx="8"/>
+    <text class="t-ink" x="680" y="228" text-anchor="middle" font-size="14">backpass analyze</text>
+    <text class="t-def" x="680" y="250" text-anchor="middle" font-size="11.5">loss + gradients, 2+ sessions</text>
+
+    <rect class="box box-def" x="300" y="200" width="220" height="68" rx="8"/>
+    <text class="t-ink" x="410" y="228" text-anchor="middle" font-size="14">proposed edits</text>
+    <text class="t-def" x="410" y="250" text-anchor="middle" font-size="11.5">gradient step &middot; few edits</text>
+
+    <rect class="box box-ok" x="30" y="200" width="220" height="68" rx="8"/>
+    <text class="t-ink" x="140" y="228" text-anchor="middle" font-size="14">backpass apply</text>
+    <text class="t-ok" x="140" y="250" text-anchor="middle" font-size="11.5">human gate: accept/reject</text>
+
+    <path class="ln" d="M250 70 H292"/><polygon class="ah" points="300,70 290,65 290,75"/>
+    <path class="ln" d="M520 70 H562"/><polygon class="ah" points="570,70 560,65 560,75"/>
+    <path class="ln-def" d="M680 104 V192"/><polygon class="ah-def" points="680,200 675,190 685,190"/>
+    <path class="ln-def" d="M570 234 H528"/><polygon class="ah-def" points="520,234 530,229 530,239"/>
+    <path class="ln-def" d="M300 234 H258"/><polygon class="ah-def" points="250,234 260,229 260,239"/>
+    <path class="ln-off" d="M140 200 V112"/><polygon class="ah-off" points="140,104 135,114 145,114"/>
+
+    <text class="t-mid" x="410" y="146" text-anchor="middle" font-size="12">one run = one bounded gradient step</text>
+    <text class="t-dim" x="410" y="166" text-anchor="middle" font-size="11">rejected edits are remembered</text>
+  </svg></div><figcaption>The loop as the essay and README describe it. Sessions only read the file; backpass proposes; only <code>backpass apply</code>, with your verdicts, writes.</figcaption></figure>
+
+  <blockquote class="q off">The short version: handwrite your user level AGENTS.md that holds your preferences, and treat your project level ones like a neural net. Give it a size budget and train it on the sessions that actually ran.<span class="cite">Kun Chen, <a href="https://kunchenguid.substack.com/p/your-agentsmd-is-a-neural-net" target="_blank" rel="noopener">Your AGENTS.md is a Neural Net</a></span></blockquote>
+
+  <p>Note the split. The user-level file holds his own preferences, so he writes it by hand and no tool should optimise it. The project-level file is the one to train. (The backpass README now also offers <code>--scope user</code> for user-level memory, so the tool supports the case even though the essay argues against it for his own preferences.)</p>
+
+  <h2 id="backpass">What backpass actually does</h2>
+  <p><a class="lnk" href="https://github.com/kunchenguid/backpass" target="_blank" rel="noopener">backpass</a> is that backward pass turned into a pipeline. A run goes through these stages:</p>
+  <ul>
+    <li><b>Collect.</b> It reads the transcript stores of seven harnesses (Claude Code, Codex, pi, opencode, grok, Cursor CLI, Hermes) straight from disk, and ties each session to the repo by working directory or git remote. Other machines you own can join over SSH.</li>
+    <li><b>Distil.</b> No model is involved at this stage. User and assistant turns stay verbatim, each tool call shrinks to one line, output is truncated and obvious secrets are redacted. The README puts the typical reduction at 96&ndash;99%.</li>
+    <li><b>Calculate loss.</b> One cheap model call per transcript, on a recency-weighted sample (default cap 100) when there are more. The call returns which instructions helped, which were ignored, which caused harm, and which mistakes no rule covers. Any claim without a verbatim quote that really appears in the trace is thrown out in code.</li>
+    <li><b>Aggregate.</b> Evidence is counted per instruction. Similar gaps are clustered across sessions, and any gap seen in only one session is dropped.</li>
+    <li><b>Descend.</b> One high-reasoning call edits a staging copy: add, remove, rewrite, extract to a skill, or move. Mechanical gates then check the result. There is an edit cap (five near budget; more only when the file is over budget and needs shrinking), each content change needs quotes from two distinct sessions, and the result must fit the budget.</li>
+  </ul>
+  <p>The budget defaults to about 5,000 tokens for the always-loaded surface, which is the memory file plus every skill's one-line description. Skills act as the release valve. A narrow procedure with a clear trigger moves into a skill body, which costs nothing until the skill fires. A narrow rule with no detectable trigger becomes a deletion candidate.</p>
+  <pre class="code-block"><code>npm install -g backpass
+cd your-repo
+backpass init     # writes .backpassrc.json, keeps .backpass/ out of git
+backpass          # analyse and propose; never writes
+backpass apply    # review each edit, then write</code></pre>
+  <p><code>backpass apply</code> opens a review page through <a class="lnk" href="p04.html">lavish-axi</a>: one card per edit, with the diff, the evidence quotes and a budget gauge. A rejected edit stays rejected until a later run has strictly more sessions behind it. backpass has no API keys of its own. Every model call goes through <a class="lnk" href="https://github.com/openclaw/acpx" target="_blank" rel="noopener">acpx</a>, a headless client for the <b>Agent Client Protocol</b> (ACP, a standard way to drive coding agents programmatically), into a harness you have already logged into. The rhythm Kun describes is one run a week per active repo.</p>
+
+  <h2 id="opinions">Distilling a person: OPINIONS.md</h2>
+  <p>In May, before backpass, Kun wrote about an <a class="lnk" href="https://kunchenguid.substack.com/p/everyone-should-have-an-opinionsmd" target="_blank" rel="noopener">OPINIONS.md</a>: a compact, living file of what he actually believes. It was refreshed daily by a scheduled agent job that read his X posts and Substack essays and merged durable opinions into the existing structure. The interesting part of that essay is the filtering. His technical posts are full of commands and walkthroughs, and he did not want the file to turn into a cookbook. So the prompt tells the agent to treat technical detail as evidence of an underlying value, not as content to copy.</p>
+  <blockquote class="q">Without that filter, the file becomes a knowledge base. With the filter, it becomes more like my taste.<span class="cite">Kun Chen, <a href="https://kunchenguid.substack.com/p/everyone-should-have-an-opinionsmd" target="_blank" rel="noopener">Everyone Should Have an OPINIONS.md</a></span></blockquote>
+  <p>He added two more ideas. The file is allowed to reorganise its sections instead of growing by appending. And there is a watchdog pass that flags <b>opinion drift</b> (a new post contradicting an old line) and <b>factual risk</b>, without silently rewriting either. The rule is the same as in backpass: evidence first, small consolidating steps, and a human decides.</p>
+
+  <h2 id="kun-skill">The /kun skill</h2>
+  <p>In September he packaged the whole thing as <a class="lnk" href="https://github.com/kunchenguid/kun" target="_blank" rel="noopener">kunchenguid/kun</a>, an Agent Skill you install with <code>npx skills add kunchenguid/kun -g</code> and call as <code>/kun &lt;question&gt;</code>. The skill file is deliberately thin. When called, the agent runs a small pull script (plain Node, no model) that syncs the repo's living documents into a local cache. Those documents are <code>ENTRY.md</code>, <code>OPINIONS.md</code>, <code>TOOLS.md</code>, <code>VOICE.md</code>, and a <code>content/</code> archive of his public posts. The agent reads the four documents and opens individual posts only when it needs his actual words. If the pull fails, the skill is told to stop rather than guess. Per the README, a daily automation regenerates OPINIONS and VOICE from his public X, Substack and YouTube output, and TOOLS from his public repos. That makes these files bot-written distillations, not hand-edited text.</p>
+  <p>His reason for doing it is practical. His agents keep blocking on his judgment, either escalating decisions or making choices he then has to correct. A distillation lets them carry some of that judgment forward. He is also clear about what it leaves out:</p>
+  <blockquote class="q off">A distillation is by definition a subset. The parts of me that can be distilled into markdown files aren’t the most valuable parts anyway.<span class="cite">Kun Chen, <a href="https://kunchenguid.substack.com/p/i-distilled-myself-and-you-should" target="_blank" rel="noopener">I distilled myself, and you should too</a></span></blockquote>
+  <p>The same essay also distils other people from public statements, as a demonstration of the method.</p>
+
+  <h2 id="vision">vision: the same move for a project</h2>
+  <p>The <a class="lnk" href="https://github.com/kunchenguid/vision" target="_blank" rel="noopener">vision</a> skill turns the idea on a repository. A project's values are already written into its history, in the PRs it merged and the features it declined. vision mines that history (merged PRs through <code>gh</code> or gh-axi, falling back to commit history) and drafts a VISION.md as a testable acceptance policy: identity, principles, non-goals, and examples of what aligns and what gets resisted. It then deals out 8&ndash;12 hard hypotheticals, such as a tempting off-mission feature or two principles in conflict, on a lavish-axi review board. Your verdicts are folded back into the draft. Every principle must cite real PRs or commits. Generic engineering virtues are banned, and if the history is unreadable the skill refuses to invent values. <a class="lnk" href="https://github.com/kunchenguid/firstmate/blob/main/VISION.md" target="_blank" rel="noopener">firstmate's VISION.md</a> is the worked example.</p>
+
+  <h2 id="limits">Limits</h2>
+  <ul>
+    <li><b>Attribution is hard.</b> The backpass README says outright that a model can confabulate which rule caused what. Quote checks, the two-session floor and the human gate are mitigations, not proof.</li>
+    <li><b>Formats move.</b> Harness transcript formats are undocumented and can change. Each adapter is pinned by a fixture and fails soft. Cursor IDE support is best-effort until v1.1.</li>
+    <li><b>Platform.</b> backpass needs Node 22.5 or later and acpx, and is verified on macOS and Linux. SSH collection is for your own machines, not for pooling across people.</li>
+    <li><b>Distillations are lossy and automated.</b> The /kun files are regenerated by a bot from public posts. They can lag, overfit a throwaway post, or miss context, which is why the skill points back to the raw content.</li>
+  </ul>
+
+  <div class="callout off"><b>In use:</b> In Larry's setup, backpass and the /kun skill are installed, and Kun's tools are upgraded weekly.</div>
+
+  <div class="callout">Next: <a class="lnk" href="p09.html">Voice, video and toys</a> &middot; Back to <a class="lnk" href="../index.html#memory">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 08 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

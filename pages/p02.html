@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The ten AXI principles, and the benchmark behind them &mdash; Kun Chen, mapped</title>
+<meta name="description" content="The ten AXI design rules for agent-facing CLIs, why each one exists, and what Kun's own browser and GitHub benchmarks do and do not show." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#axi">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">INTERFACES FOR AGENTS &middot; PAGE 02 OF 11</span><span class="mono">axi &middot; TOON &middot; contextual disclosure &middot; self-reported results</span></div>
+  <h1>The ten AXI principles, and the benchmark behind them</h1>
+  <div class="authors">What each rule asks of a command-line tool, why an agent cares, and how much weight the published numbers can bear.</div>
+  <div class="paperlink" style="border-left-color:var(--off)"><span class="lbl">Source</span><a href="https://axi.md/" target="_blank" rel="noopener">axi.md &middot; Agent eXperience Interface &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> AXI (Agent eXperience Interface) is a short spec for CLIs that agents drive through a shell. Its ten rules all chase one cost: every token an agent reads, and above all every extra turn it takes. The rules are compact output, small default fields, truncation with a way out, counts up front, explicit zeros, readable errors, context at session start, data before help text, next-step hints, and tight per-command help. Kun's own benchmarks on Claude Sonnet 4.6 put his AXI wrappers cheapest and most reliable. They are one author's runs, one model and his own tasks, so read them as a strong hint, not a verdict.</div>
+
+  <p class="lead">An agent using a tool works in a loop: run a command, read the output, decide, run the next one. Every pass through the loop re-sends the growing conversation to the model. So the expensive mistake is rarely one long response. It is the extra trip: re-running a command to check that empty output really meant zero, paging to find a total, or reading a manual before doing anything. AXI is Kun's list of ways a tool can save the agent those trips.</p>
+
+  <blockquote class="q">The most expensive token cost is often not a longer response — it's a follow-up call.<span class="cite"><a href="https://github.com/kunchenguid/axi/blob/main/.agents/skills/axi/SKILL.md" target="_blank" rel="noopener">AXI skill spec, &sect;4</a></span></blockquote>
+
+  <h2 id="principles">The ten rules at a glance</h2>
+  <p>The titles below come from the spec's own principle list. The "why" column is our one-line reading of what each rule buys the agent.</p>
+  <div class="scroll"><table class="kv">
+    <thead><tr><th>#</th><th>Principle</th><th>What it asks</th><th>Why the agent cares</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>Token-efficient output</b></td><td>Print TOON, not JSON, on stdout</td><td>Field names are said once per table, not once per row</td></tr>
+      <tr><td>2</td><td><b>Minimal default schemas</b></td><td>3&ndash;4 fields per list row; <code>--fields</code> for more</td><td>Each extra field is paid again for every row</td></tr>
+      <tr><td>3</td><td><b>Content truncation</b></td><td>Show a preview of long text, its total size, and a <code>--full</code> flag</td><td>It can judge whether the rest is worth fetching</td></tr>
+      <tr><td>4</td><td><b>Pre-computed aggregates</b></td><td>"30 of 847 total", "checks: 3/3 passed"</td><td>No paging or second lookup just to answer "how many?"</td></tr>
+      <tr><td>5</td><td><b>Definitive empty states</b></td><td>Say "0 found" in words</td><td>Blank output looks like failure, so it retries</td></tr>
+      <tr><td>6</td><td><b>Structured errors &amp; exit codes</b></td><td>Errors on stdout with a fix; no prompts; idempotent no-ops; reject unknown flags</td><td>It can recover in one turn and never acts on silently ignored input</td></tr>
+      <tr><td>7</td><td><b>Ambient context</b></td><td>An opt-in session-start hook prints a tiny dashboard; a skill as a second path</td><td>It starts work already knowing the state</td></tr>
+      <tr><td>8</td><td><b>Content first</b></td><td>No arguments shows live data, not usage text</td><td>The first call already returns something useful</td></tr>
+      <tr><td>9</td><td><b>Contextual disclosure</b></td><td>End output with a few complete next commands</td><td>It learns the tool by using it</td></tr>
+      <tr><td>10</td><td><b>Consistent way to get help</b></td><td>Short per-command <code>--help</code>; fast <code>--version</code>; home view names the binary</td><td>Lookups are cheap and scoped to the command in play</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="toon">1&ndash;3: say less, and say it once</h2>
+  <p><b>TOON</b> (Token-Oriented Object Notation) is a text format that writes a list of records as a header naming the fields, followed by one comma-separated line per record. JSON repeats every key on every object. The spec claims about 40% savings over equivalent JSON. That figure comes from the format's own documentation. Neither benchmark below measured it. Tools keep JSON internally and convert at the edge, just before printing.</p>
+  <pre class="code-block"><code># JSON: keys repeated per row
+[{"id":"7","title":"Flaky login test","state":"open"},
+ {"id":"9","title":"Bump node","state":"closed"}]
+
+# TOON: keys once, rows below
+issues[2]{id,title,state}:
+  "7",Flaky login test,open
+  "9",Bump node,closed</code></pre>
+  <p>Rules 2 and 3 apply the same thinking to fields. A list shows only what the agent needs to choose the next step, usually an id, a title and a status, so bodies and descriptions move to the detail view. In that view a long body is cut to a preview of a few hundred characters, followed by its total length and the flag that prints the whole thing. The spec is firm that the field should never vanish. A missing body sends the agent hunting, and a full one wastes thousands of tokens it may not need.</p>
+
+  <h2 id="aggregates">4&ndash;5: answer the next question before it is asked</h2>
+  <p>Rule 4 adds a total to every list and inlines cheap derived state such as CI check results or a comment count. Rule 5 turns silence into a fact. Here is the difference for an agent asking whether anything is closed:</p>
+  <pre class="code-block"><code># before: exit 0, no output. Wrong filter? Auth problem? Nothing there?
+$ tool list --state closed
+
+# after
+$ tool list --state closed
+issues: 0 closed issues in this repository</code></pre>
+  <p>The "before" version invites a second and third call to rule out the other explanations. The "after" version ends the line of inquiry.</p>
+
+  <h2 id="errors">6: errors the agent can act on</h2>
+  <p>Rule 6 bundles four habits. Errors go to stdout in the same format as data, with a suggested fix, and with the wrapped tool's stack traces translated rather than leaked. Closing something already closed is a no-op with exit code 0, not a failure. Nothing ever waits on an interactive prompt. And an unknown flag is rejected by name, with the valid flags listed inline so the fix takes one turn instead of two. The spec's reasoning on that last point is worth quoting:</p>
+  <blockquote class="q">A dropped flag is worse than an error: the agent gets plausible-looking output it believes is scoped or filtered, then proceeds confidently on wrong data.<span class="cite"><a href="https://github.com/kunchenguid/axi/blob/main/.agents/skills/axi/SKILL.md" target="_blank" rel="noopener">AXI skill spec, &sect;6</a></span></blockquote>
+  <p>Exit codes are fixed too: 0 for success including no-ops, 1 for errors, 2 for usage mistakes. Progress chatter goes to stderr, because an agent reading "Fetching..." on stdout will try to treat it as data.</p>
+
+  <h2 id="ambient">7&ndash;8: start with the state, not the manual</h2>
+  <p>Rule 7 is the most architectural. A tool ships a setup command that the user runs on purpose. It registers a session-start hook in Claude Code, Codex or OpenCode, so each new conversation opens with a few lines of current state for this directory. That text loads on every session, so the spec asks for it to be ruthlessly small. As a second, lighter path, the tool ships an Agent Skill: a markdown file the agent loads only when the task matches. It should be generated from the same text as the CLI's home view, so the two never drift. Rule 8 is the same idea for the first command: running the bare tool shows live data with a couple of hints, not a page of usage.</p>
+
+  <h2 id="disclosure">9&ndash;10: learn the tool by using it</h2>
+  <p><b>Contextual disclosure</b> means each list or mutation ends with a few complete, runnable next commands. They carry forward flags like <code>--repo</code> and use placeholders where a value is unknown. A detail view that fully answers the question gets no hints, because there they are noise.</p>
+  <pre class="code-block"><code>issues[2]{id,title,state}:
+  "7",Flaky login test,open
+  "9",Bump node,closed
+count: 2 of 41 total
+help[2]:
+  Run `tool view &lt;id&gt; --repo acme/web` for details
+  Run `tool list --repo acme/web --limit 50` to see more</code></pre>
+  <p>Rule 10 keeps the fallback cheap. <code>--help</code> on a subcommand covers only that subcommand. The home view prints the binary's path and a one-sentence description. <code>--version</code> answers before the heavy part of the program loads, because harnesses call it constantly and every millisecond is paid at session start.</p>
+
+  <h2 id="benchmarks">The benchmarks, as Kun reports them</h2>
+  <p>The AXI repository publishes two studies. Kun designed both, ran both and published both, so everything in this section is <b>self-reported</b>. Each "condition" is one way of giving the agent access to the same service. <b>MCP</b> (Model Context Protocol) is the standard for exposing tools to a model as typed function schemas. "ToolSearch" loads those schemas on demand rather than all up front. "Code mode" has the agent write a script against typed wrappers. In both studies the agent and the grading judge were Claude Sonnet 4.6, with 5 repeats per task.</p>
+
+  <figure class="fig wide"><div class="media">
+    <svg class="dg" viewBox="0 0 820 260" role="img">
+      <title>GitHub benchmark: average cost per task by condition, self-reported</title>
+      <text class="t-dim" x="10" y="20" font-size="11">avg cost per task (USD) · success rate</text>
+      <line class="grid" x1="230" y1="30" x2="230" y2="240"/>
+      <text class="t-ink" x="220" y="59" text-anchor="end" font-size="12">gh-axi</text>
+      <rect class="box-ok" x="230" y="40" width="155" height="28" rx="3"/>
+      <text class="t-ok" x="393" y="59" font-size="11.5">$0.050 · 100%</text>
+      <text class="t-ink" x="220" y="101" text-anchor="end" font-size="12">gh (CLI)</text>
+      <rect class="box-def" x="230" y="82" width="168" height="28" rx="3"/>
+      <text class="t-mid" x="406" y="101" font-size="11.5">$0.054 · 86%</text>
+      <text class="t-ink" x="220" y="143" text-anchor="end" font-size="12">MCP + Code Mode</text>
+      <rect class="box-off" x="230" y="124" width="314" height="28" rx="3"/>
+      <text class="t-mid" x="552" y="143" font-size="11.5">$0.101 · 84%</text>
+      <text class="t-ink" x="220" y="185" text-anchor="end" font-size="12">GitHub MCP + ToolSearch</text>
+      <rect class="box-off" x="230" y="166" width="457" height="28" rx="3"/>
+      <text class="t-mid" x="695" y="185" font-size="11.5">$0.147 · 82%</text>
+      <text class="t-ink" x="220" y="227" text-anchor="end" font-size="12">GitHub MCP</text>
+      <rect class="box-off" x="230" y="208" width="460" height="28" rx="3"/>
+      <text class="t-mid" x="698" y="227" font-size="11.5">$0.148 · 87%</text>
+    </svg>
+  </div><figcaption>GitHub benchmark, average cost per task. Self-reported by Kun: Claude Sonnet 4.6 as agent and judge, 17 tasks &times; 5 repeats = 85 runs per condition, all on one public repository, dated 2026-03-21. Bars are to scale.</figcaption></figure>
+
+  <p><b>GitHub</b>: 425 runs (17 tasks &times; 5 conditions &times; 5 repeats).</p>
+  <div class="scroll"><table class="kv">
+    <thead><tr><th>Condition</th><th>Success</th><th>Avg cost</th><th>Avg duration</th><th>Avg turns</th></tr></thead>
+    <tbody>
+      <tr><td><b>gh-axi</b></td><td>100%</td><td>$0.050</td><td>15.7s</td><td>3</td></tr>
+      <tr><td>gh (CLI)</td><td>86%</td><td>$0.054</td><td>17.4s</td><td>3</td></tr>
+      <tr><td>GitHub MCP</td><td>87%</td><td>$0.148</td><td>34.2s</td><td>6</td></tr>
+      <tr><td>GitHub MCP + ToolSearch</td><td>82%</td><td>$0.147</td><td>41.1s</td><td>8</td></tr>
+      <tr><td>MCP + Code Mode</td><td>84%</td><td>$0.101</td><td>43.4s</td><td>7</td></tr>
+    </tbody>
+  </table></div>
+
+  <p><b>Browser</b>: 490 runs (14 tasks &times; 7 conditions &times; 5 repeats).</p>
+  <div class="scroll"><table class="kv">
+    <thead><tr><th>Condition</th><th>Success</th><th>Avg cost</th><th>Avg duration</th><th>Avg turns</th></tr></thead>
+    <tbody>
+      <tr><td><b>chrome-devtools-axi</b></td><td>100%</td><td>$0.074</td><td>21.5s</td><td>4.5</td></tr>
+      <tr><td>dev-browser</td><td>99%</td><td>$0.078</td><td>28.6s</td><td>4.9</td></tr>
+      <tr><td>agent-browser</td><td>99%</td><td>$0.088</td><td>24.6s</td><td>4.8</td></tr>
+      <tr><td>chrome-devtools-mcp-compressed</td><td>100%</td><td>$0.091</td><td>29.7s</td><td>7.6</td></tr>
+      <tr><td>chrome-devtools-mcp-search</td><td>99%</td><td>$0.096</td><td>29.4s</td><td>7.5</td></tr>
+      <tr><td>chrome-devtools-mcp</td><td>99%</td><td>$0.101</td><td>26.0s</td><td>6.2</td></tr>
+      <tr><td>chrome-devtools-mcp-code</td><td>100%</td><td>$0.120</td><td>36.2s</td><td>6.4</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="read">What the numbers show, and what they don't</h2>
+  <p>The clearest signal is MCP versus shell. In the GitHub runs, the three MCP setups averaged 137K&ndash;176K input tokens per task against about 46K&ndash;47K for the two CLIs, and cost two to three times as much. The study also finds that loading schemas lazily did not pay off. The ToolSearch setup started with a smaller context but spent extra turns finding tools, and each turn re-sends everything. That is rule 4's warning about follow-up calls, showing up in the data.</p>
+  <p>gh-axi against plain <code>gh</code> is a much narrower result. Cost ($0.050 vs $0.054), turns (3 vs 3) and input tokens are close. The gap is in success. The study credits much of it to tasks where a total count or a hinted next step mattered. On the label-listing task, the plain CLI went 0 for 5 because it could not tell whether it had seen every label. In the browser study, all seven setups landed between 99% and 100% success, with 4 failures across 490 runs. The axi wrapper's edge there is cost and speed, and its lead over dev-browser is small.</p>
+  <div class="callout off"><b>Caveats.</b>
+    <ul>
+      <li><b>One model.</b> Every published run used Claude Sonnet 4.6, as both agent and judge. The README notes that other models may respond differently to output format.</li>
+      <li><b>His harness, his tasks.</b> Kun wrote the tasks, the condition-specific setup notes each agent received, and the grading criteria.</li>
+      <li><b>Narrow scope.</b> The GitHub tasks all target one repository. The browser report lists its own limits: MCP setups start Chrome on every run (2&ndash;5 s of overhead), and schemas take a large share of input tokens.</li>
+      <li><b>Which MCP.</b> The MCP rows are specific servers and configurations (eager, ToolSearch, code mode, a compressed variant), not MCP in general.</li>
+      <li><b>Small samples.</b> 5 repeats per cell, and no confidence intervals are published.</li>
+    </ul>
+  </div>
+  <p>The raw trajectories and grades are in the repository: the <a class="lnk" href="https://github.com/kunchenguid/axi/blob/main/bench-github/published-results/STUDY.md" target="_blank" rel="noopener">GitHub study</a> and the <a class="lnk" href="https://github.com/kunchenguid/axi/blob/main/bench-browser/published-results/report.md" target="_blank" rel="noopener">browser report</a>. Kun's longer write-up of the GitHub comparison is his essay <a class="lnk" href="https://medium.com/@kunchenguid/i-benchmarked-github-cli-vs-mcp-vs-tool-search-vs-code-mode-turns-out-the-best-solution-is-none-93528d5039e4" target="_blank" rel="noopener">I benchmarked GitHub CLI vs MCP vs Tool Search vs Code Mode</a> on Medium. The spec and its catalog live at <a class="lnk" href="https://github.com/kunchenguid/axi" target="_blank" rel="noopener">github.com/kunchenguid/axi</a>.</p>
+
+  <div class="callout">Next: <a class="lnk" href="p03.html">The AXI shelf: gh-axi, chrome-devtools-axi, quota-axi and friends</a> &middot; Back to <a class="lnk" href="../index.html#axi">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 02 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

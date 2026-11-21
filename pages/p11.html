@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sources &mdash; Kun Chen, mapped</title>
+<meta name="description" content="Every profile, repository, essay and video this field map draws on, each linked and checked on 2026-11-21." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#reading">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">SIDE BUILDS AND PATTERNS &middot; PAGE 11 OF 11</span><span class="mono">repos &middot; essays &middot; videos</span></div>
+  <h1>Sources</h1>
+  <div class="authors">Where every claim on this map comes from: Kun's profiles, the repositories, his essays and his videos.</div>
+  <div class="paperlink" style="border-left-color:var(--def)"><span class="lbl">Source</span><a href="https://github.com/kunchenguid" target="_blank" rel="noopener">github.com/kunchenguid &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Everything here is public. The repositories and their READMEs explain the tools; the Substack essays and YouTube transcripts explain the reasoning behind them. Every link below was checked on 2026-11-21. The bot-written summaries in the <code>kun</code> repo helped us find our way, but no quote on this site comes from them.</div>
+  <p class="lead">This page lists the sources only. Each entry has a link and one line on what it is or which page of the map uses it. Dates are publication dates.</p>
+
+  <h2 id="profiles">Kun's profiles</h2>
+  <ul>
+    <li><a class="lnk" href="https://github.com/kunchenguid" target="_blank" rel="noopener">github.com/kunchenguid</a>: every repository on this map lives here.</li>
+    <li><a class="lnk" href="https://kunchenguid.substack.com/" target="_blank" rel="noopener">kunchenguid.substack.com</a>: his long-form essays, including the reasoning behind AXI, backpass and the distilled self.</li>
+    <li><a class="lnk" href="https://www.youtube.com/@kunchenguid" target="_blank" rel="noopener">youtube.com/@kunchenguid</a>: the channel. It started with career advice for software engineers and since 2026 has mostly been agentic-engineering walkthroughs.</li>
+    <li><a class="lnk" href="https://axi.md/" target="_blank" rel="noopener">axi.md</a>: the AXI (Agent eXperience Interface) spec site, with the ten principles and the benchmark write-up.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/kun" target="_blank" rel="noopener">kunchenguid/kun</a>: the <code>/kun</code> agent skill, a knowledge base refreshed daily from what he publishes (see the note on method below).</li>
+  </ul>
+
+  <h2 id="repos">Repositories covered on this map</h2>
+  <p>Grouped by the arc that covers them.</p>
+  <h3>Interfaces for agents (<a class="lnk" href="p02.html">p02</a>, <a class="lnk" href="p03.html">p03</a>)</h3>
+  <ul>
+    <li><a class="lnk" href="https://github.com/kunchenguid/axi" target="_blank" rel="noopener">axi</a>: the design principles and the benchmark harness behind them.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/gh-axi" target="_blank" rel="noopener">gh-axi</a>: a GitHub CLI wrapper built to the AXI rules.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/chrome-devtools-axi" target="_blank" rel="noopener">chrome-devtools-axi</a>: browser automation for agents, built on Chrome DevTools.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/quota-axi" target="_blank" rel="noopener">quota-axi</a>: lets an agent read your LLM subscription's quota windows.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/tasks-axi" target="_blank" rel="noopener">tasks-axi</a>: a task and backlog CLI with pluggable backends (markdown, SQLite, remote trackers).</li>
+  </ul>
+  <h3>The human in the loop (<a class="lnk" href="p04.html">p04</a>, <a class="lnk" href="p05.html">p05</a>)</h3>
+  <ul>
+    <li><a class="lnk" href="https://github.com/kunchenguid/lavish-axi" target="_blank" rel="noopener">lavish-axi</a>: an editor for reviewing and annotating the HTML artifacts agents produce.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/no-mistakes" target="_blank" rel="noopener">no-mistakes</a>: a local git remote that runs an AI validation pipeline before anything reaches origin. Docs site: <a class="lnk" href="https://kunchenguid.github.io/no-mistakes/" target="_blank" rel="noopener">kunchenguid.github.io/no-mistakes</a>.</li>
+  </ul>
+  <h3>Running many agents (<a class="lnk" href="p06.html">p06</a>, <a class="lnk" href="p07.html">p07</a>)</h3>
+  <ul>
+    <li><a class="lnk" href="https://github.com/kunchenguid/treehouse" target="_blank" rel="noopener">treehouse</a>: a pool of reusable git worktrees, leased to one agent session at a time.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/gnhf" target="_blank" rel="noopener">gnhf</a>: "good night, have fun", a bounded overnight loop of small, committed agent changes.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/firstmate" target="_blank" rel="noopener">firstmate</a>: you talk to one agent, and it dispatches and supervises a crew of others.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/compact-adviser" target="_blank" rel="noopener">compact-adviser</a>: tells you when a session has reached a point where it is safe to compact.</li>
+  </ul>
+  <h3>Memory you train (<a class="lnk" href="p08.html">p08</a>)</h3>
+  <ul>
+    <li><a class="lnk" href="https://github.com/kunchenguid/backpass" target="_blank" rel="noopener">backpass</a>: reads past agent transcripts and proposes evidence-backed edits to AGENTS.md.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/vision" target="_blank" rel="noopener">vision</a>: an agent skill that drafts a VISION.md from a repo's history and stress-tests it with you.</li>
+  </ul>
+  <h3>Side builds (<a class="lnk" href="p09.html">p09</a>, <a class="lnk" href="p10.html">p10</a>)</h3>
+  <ul>
+    <li><a class="lnk" href="https://github.com/kunchenguid/autopreso" target="_blank" rel="noopener">autopreso</a>: turns live speech into a whiteboard that draws itself.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/justroll" target="_blank" rel="noopener">justroll</a>: one command records every screen and the camera, each to its own file.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/rough-cut-axi" target="_blank" rel="noopener">rough-cut-axi</a>: cut video by editing its transcript, review in the browser, render from the shell.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/short-pipe" target="_blank" rel="noopener">short-pipe</a>: an agent finds soundbites in a long talk and exports captioned vertical shorts.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/m87" target="_blank" rel="noopener">m87</a>: an AI triages your GitHub issues and PRs, and you approve before anything ships.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/baby-menu" target="_blank" rel="noopener">baby-menu</a>: a macOS menu bar app that rewrites itself into whatever you ask for.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/trial-by-combat" target="_blank" rel="noopener">trial-by-combat</a>: two LLMs duel on a 9&times;9 grid for a relic.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/fly-with-me" target="_blank" rel="noopener">fly-with-me</a>: watch a bird fly across an endless generated world. Live at <a class="lnk" href="https://kunchenguid.github.io/fly-with-me/" target="_blank" rel="noopener">kunchenguid.github.io/fly-with-me</a>.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/runner-up" target="_blank" rel="noopener">runner-up</a>: GitHub Actions runners on your own machines, with a fresh container or VM for each job.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/headless" target="_blank" rel="noopener">headless</a>: an agent skill that sets up a headless Mac, Linux or Windows machine over SSH without ever seeing the admin password.</li>
+    <li><a class="lnk" href="https://github.com/kunchenguid/dotfiles" target="_blank" rel="noopener">dotfiles</a>: his Mac setup for agentic engineering, managed with nix-darwin and home-manager.</li>
+  </ul>
+
+  <h2 id="essays">Essays</h2>
+  <ul>
+    <li>2026-04-02 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/zero-to-one-handbook-for-entrepreneurial" target="_blank" rel="noopener">Zero to One &mdash; Handbook for Entrepreneurial Engineers</a></li>
+    <li>2026-04-05 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/how-i-built-a-reproducible-mac-setup" target="_blank" rel="noopener">How I Built a Reproducible Mac Setup with Nix</a></li>
+    <li>2026-04-21 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/making-a-polished-tui-demo-video" target="_blank" rel="noopener">Making a Polished TUI Demo Video Without a Video Editor</a></li>
+    <li>2026-04-22 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/org-bench-lets-simulate-the-org-charts" target="_blank" rel="noopener">Org-Bench: Let&rsquo;s Simulate the Org Charts Meme with Agents and See Who Wins</a></li>
+    <li>2026-04-28 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/how-i-built-a-starry-night-in-tui" target="_blank" rel="noopener">How I built a starry night in TUI</a></li>
+    <li>2026-05-04 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/the-month-after-leaving-big-tech" target="_blank" rel="noopener">The Month After Leaving Big Tech</a></li>
+    <li>2026-05-05 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/everyone-should-have-an-opinionsmd" target="_blank" rel="noopener">Everyone Should Have an OPINIONS.md</a></li>
+    <li>2026-06-10 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/evaluating-the-effectiveness-of-programming" target="_blank" rel="noopener">Evaluating the Effectiveness of Programming Languages for Agents</a></li>
+    <li>2026-08-01 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/kuns-pi-agent-config" target="_blank" rel="noopener">Kun&rsquo;s Pi Agent Config</a></li>
+    <li>2026-08-23 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/your-agentsmd-is-a-neural-net" target="_blank" rel="noopener">Your AGENTS.md is a Neural Net</a></li>
+    <li>2026-09-09 &middot; <a class="lnk" href="https://kunchenguid.substack.com/p/i-distilled-myself-and-you-should" target="_blank" rel="noopener">I distilled myself, and you should too</a></li>
+    <li>On Medium: <a class="lnk" href="https://medium.com/@kunchenguid/i-benchmarked-github-cli-vs-mcp-vs-tool-search-vs-code-mode-turns-out-the-best-solution-is-none-93528d5039e4" target="_blank" rel="noopener">his benchmark of GitHub CLI vs MCP vs tool search vs code mode</a>, which compares ways of giving an agent access to GitHub. Medium blocks automated requests, so we could link this essay but not fetch it to check it.</li>
+  </ul>
+
+  <h2 id="videos">Videos (2026)</h2>
+  <ul>
+    <li>2026-05-17 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=GQ0U_gTYMpA" target="_blank" rel="noopener">First Month After Quitting My Big Tech Job as L8 Principal</a></li>
+    <li>2026-05-21 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=tt_SloZ18Mk" target="_blank" rel="noopener">AI Tech Layoffs Explained by ex-Meta Principal Engineer</a></li>
+    <li>2026-06-03 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=sxUPsyNwGgs" target="_blank" rel="noopener">ex-Meta Principal Explains the AI Token Game</a></li>
+    <li>2026-06-04 &middot; <a class="lnk" href="https://www.youtube.com/shorts/ayIiOfNQEH4" target="_blank" rel="noopener">LLM tokens aren&rsquo;t productivity</a> (short)</li>
+    <li>2026-06-05 &middot; <a class="lnk" href="https://www.youtube.com/shorts/LvZv7OAxt6w" target="_blank" rel="noopener">Interest rate and layoffs</a> (short)</li>
+    <li>2026-06-05 &middot; <a class="lnk" href="https://www.youtube.com/shorts/cN7-QOTmFTQ" target="_blank" rel="noopener">The circular ai money game</a> (short)</li>
+    <li>2026-06-05 &middot; <a class="lnk" href="https://www.youtube.com/shorts/2mDEKRTmFtY" target="_blank" rel="noopener">Why middle management is getting hit</a> (short)</li>
+    <li>2026-06-06 &middot; <a class="lnk" href="https://www.youtube.com/shorts/AOiTGfVp4r8" target="_blank" rel="noopener">How small teams with AI move fast</a> (short)</li>
+    <li>2026-06-20 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=iQyg-KypKAA" target="_blank" rel="noopener">L8 Principal&rsquo;s Agentic Engineering Workflow</a></li>
+    <li>2026-07-05 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=5N-okeDdIuI" target="_blank" rel="noopener">Kun&rsquo;s Agentic Dev Environment From Scratch</a></li>
+    <li>2026-07-13 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=QtsOHdJgOJQ" target="_blank" rel="noopener">Dad and Son Vibe Code an RPG Game</a></li>
+    <li>2026-07-27 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=kPN564Kol14" target="_blank" rel="noopener">L8 Principal Building a Full Stack App with Agentic Engineering</a></li>
+    <li>2026-09-13 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=MSbacZ99E14" target="_blank" rel="noopener">High Throughput Agentic Engineering with Kun</a></li>
+    <li>2026-11-08 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=UvcH1hKM-mQ" target="_blank" rel="noopener">How I work from anywhere with a multi-machine setup</a></li>
+    <li>2026-11-13 &middot; <a class="lnk" href="https://www.youtube.com/watch?v=_cVWs9pPFDI" target="_blank" rel="noopener">Agentic Engineering in Grok Bot</a></li>
+  </ul>
+
+  <h2 id="method">A note on method</h2>
+  <ul>
+    <li><b>The distillations are for orientation only.</b> <a class="lnk" href="https://github.com/kunchenguid/kun/blob/main/OPINIONS.md" target="_blank" rel="noopener">OPINIONS.md</a>, <a class="lnk" href="https://github.com/kunchenguid/kun/blob/main/TOOLS.md" target="_blank" rel="noopener">TOOLS.md</a> and <a class="lnk" href="https://github.com/kunchenguid/kun/blob/main/VOICE.md" target="_blank" rel="noopener">VOICE.md</a> in the <code>kun</code> repo are written by an automated job that summarises his posts every day. We used them to work out which essay or video to read. Nothing on this site quotes them as Kun's own words.</li>
+    <li><b>Quotes come from primary sources.</b> Every verbatim quote is copied from a README, an essay or a video transcript, and links to the exact source.</li>
+    <li><b>Star counts are dated.</b> Any star count on this map is as of 2026-11-21.</li>
+    <li><b>Benchmarks are self-reported.</b> Every benchmark number on this map, including AXI against MCP and plain CLIs, comes from Kun's own runs on his own harnesses. We give the models and run counts he reports. We know of no independent reproduction.</li>
+    <li><b>Links were checked.</b> Every external link on this page returned HTTP 200 on 2026-11-21. The exception is Medium, which returns 403 to scripts. Each video link was also matched to the <code>@kunchenguid</code> channel through YouTube's oEmbed endpoint.</li>
+  </ul>
+
+  <div class="callout">Back to <a class="lnk" href="../index.html#reading">the map</a> &middot; Start again: <a class="lnk" href="p01.html">p01 &mdash; Who Kun is, and the bet he is making</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 11 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

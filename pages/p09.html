@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Voice, video and toys &mdash; Kun Chen, mapped</title>
+<meta name="description" content="Kun Chen's side builds: a whiteboard driven by speech, a recording-to-shorts video chain, an approval-gated inbox triager, a self-editing menu bar, an LLM duel, a browser flight toy, and two infrastructure helpers." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#reading">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box bb mono">SIDE BUILDS AND PATTERNS &middot; PAGE 09 OF 11</span><span class="mono">voice &middot; video &middot; inbox &middot; toys &middot; infra</span></div>
+  <h1>Voice, video and toys</h1>
+  <div class="authors">Ten smaller repos, each one a single job with an agent in the loop, read from their own READMEs.</div>
+  <div class="paperlink" style="border-left-color:var(--def)"><span class="lbl">Source</span><a href="https://github.com/kunchenguid" target="_blank" rel="noopener">github.com/kunchenguid &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Around the main agent tooling sits a shelf of side builds. Three of them handle video: recording (justroll), cutting by transcript (rough-cut-axi) and turning long talks into vertical shorts (short-pipe). Two keep a human in control of an agent: m87 only acts on your GitHub inbox after you approve, and baby-menu lets you keep or undo every change the agent makes to it. autopreso turns speech into a live whiteboard. trial-by-combat and fly-with-me are toys, and runner-up and headless set up the machines underneath. Most are young, and several are macOS-only.</div>
+
+  <p class="lead">These repos are small, but they share a habit. Each README opens with one specific annoyance, then hands the tedious part to an agent and keeps the decisions with you. This page gives each tool a short section: the idea, how it works, and where it stops.</p>
+
+  <h2 id="grid">The shelf at a glance</h2>
+  <div class="scroll"><table class="kv">
+    <thead><tr><th>Repo</th><th>One line</th><th>Status / platform</th></tr></thead>
+    <tbody>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/autopreso" target="_blank" rel="noopener">autopreso</a></td><td>You talk; an agent draws the whiteboard</td><td>Alpha. Local transcription on macOS only; elsewhere, OpenAI Realtime</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/justroll" target="_blank" rel="noopener">justroll</a></td><td>One command records every screen and the camera, each to its own file</td><td>macOS, needs ffmpeg</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/rough-cut-axi" target="_blank" rel="noopener">rough-cut-axi</a></td><td>Edit video by marking up the transcript, with an agent CLI next to you</td><td>macOS / Linux / Windows; install from source; ElevenLabs key for transcription</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/short-pipe" target="_blank" rel="noopener">short-pipe</a></td><td>Long video in, captioned vertical shorts out</td><td>MVP; macOS desktop app; Codex subscription</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/m87" target="_blank" rel="noopener">m87</a></td><td>An agent triages GitHub issues and PRs; you approve every write</td><td>macOS / Linux / Windows; npm</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/baby-menu" target="_blank" rel="noopener">baby-menu</a></td><td>A menu-bar app your agent rewrites while you watch</td><td>macOS 13+, Homebrew cask</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/trial-by-combat" target="_blank" rel="noopener">trial-by-combat</a></td><td>Two LLMs play a deterministic capture-the-relic duel over HTTP</td><td>Node server, any OS</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/fly-with-me" target="_blank" rel="noopener">fly-with-me</a></td><td>A bird flies across an endless generated world</td><td>Browser, WebGPU or WebGL2</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/runner-up" target="_blank" rel="noopener">runner-up</a></td><td>GitHub Actions runners on your own machines, a fresh one per job</td><td>Young; coordinator on Linux or macOS</td></tr>
+      <tr><td><a class="lnk" href="https://github.com/kunchenguid/headless" target="_blank" rel="noopener">headless</a></td><td>An agent skill that sets up an unattended machine over SSH</td><td>Targets Mac / Linux / Windows; run from macOS or Linux</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="autopreso">autopreso: the whiteboard draws itself</h2>
+  <p>autopreso starts from the fact that you wanted to give the talk, not build the slides. It runs a local web app with an <a class="lnk" href="https://github.com/excalidraw/excalidraw" target="_blank" rel="noopener">Excalidraw</a> canvas. Your microphone feeds a speech-to-text engine: Moonshine on the machine, or OpenAI's Realtime API. The transcript streams to a model, and the model edits the scene through tool calls, adding boxes, labels and arrows as you speak. You set up the start by hand in a "staging" mode with a title, an agenda and a few seed shapes. Then "live" mode hands the canvas to the agent, which warms up on your staging content so it isn't starting cold on your first sentence.</p>
+  <pre class="code-block"><code>npx autopreso     # serves on 127.0.0.1:3210 and opens the browser</code></pre>
+  <p>You bring the model: an OpenAI key, a Codex subscription, or Ollama for a fully local setup. The server listens only on localhost. The README labels it alpha and warns about "the occasional weird drawing". The local transcription sidecar only ships for macOS.</p>
+  <div class="callout off"><b>In use:</b> autopreso was tried in Larry's setup as a voice-driven whiteboard.</div>
+
+  <h2 id="video">The video chain: justroll, rough-cut-axi, short-pipe</h2>
+  <p><b>justroll</b> deals with recording a talking-head video across several screens. Normally you'd juggle OBS scenes, or forget the second display. justroll is one terminal command that opens a wizard: pick a mic, the screens and a camera, and it records each source to its own file. Nothing is mixed into one frame. Lining the files up afterwards relies on a small trick:</p>
+  <blockquote class="q">the same mic is muxed into every clip, so any editor's "synchronize by audio" lines them up.<span class="cite"><a href="https://github.com/kunchenguid/justroll" target="_blank" rel="noopener">justroll README</a></span></blockquote>
+  <p>It is open about macOS quirks. All screens share one ffmpeg process, because two separate screen captures hang the system. It records to MKV so a crash doesn't wreck the file, then converts to MP4 when you stop. It needs macOS, Node 20 and ffmpeg.</p>
+  <p><b>rough-cut-axi</b> is a video editor where the transcript is the timeline. You open your footage and it gets transcribed (by ElevenLabs, so that step is not local). The browser editor shows the transcript as prose, and you mark passages to keep or skip. The original footage is never modified. The project is a pair of plain files: <code>project.json</code> is what the editor shows, and <code>timeline.json</code> is what gets rendered. It is an AXI tool (the agent-first CLI style from earlier pages), so an agent can join the edit. <code>poll</code> waits for feedback you leave in the browser, <code>snapshot</code> prints the project compactly, and <code>apply</code> validates JSON edit operations. A plan with more than three operations needs <code>--approved</code>. Rendering runs through ffmpeg.</p>
+  <p><b>short-pipe</b> is a desktop app for the next step. Give it a long video and it transcribes it locally with Whisper, word by word. An agent reads the transcript and proposes ranked soundbites, following a skill bundled in the repo. You approve and trim each one on a waveform, pick a layout and caption style, and it renders 1080&times;1920 clips on your machine. The agent runs on your Codex subscription. The README calls it an MVP: macOS only, and builds are not notarized, so the first launch needs right-click &rarr; Open.</p>
+
+  <figure class="fig wide"><div class="media">
+    <svg class="dg" viewBox="0 0 820 230" role="img" aria-label="Video chain: justroll records separate files, rough-cut-axi cuts by transcript, short-pipe makes vertical shorts">
+      <defs>
+        <marker id="a9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="ah-def"/></marker>
+      </defs>
+      <rect x="20" y="40" width="230" height="104" rx="8" class="box-def"/>
+      <text x="135" y="68" text-anchor="middle" class="t-def" font-size="15" font-weight="600">justroll</text>
+      <text x="135" y="94" text-anchor="middle" class="t-ink" font-size="12">record every source</text>
+      <text x="135" y="114" text-anchor="middle" class="t-dim" font-size="11">screen-0, screen-1, camera</text>
+      <text x="135" y="130" text-anchor="middle" class="t-dim" font-size="11">same mic in each file</text>
+
+      <rect x="295" y="40" width="230" height="104" rx="8" class="box-def"/>
+      <text x="410" y="68" text-anchor="middle" class="t-def" font-size="15" font-weight="600">rough-cut-axi</text>
+      <text x="410" y="94" text-anchor="middle" class="t-ink" font-size="12">cut by transcript</text>
+      <text x="410" y="114" text-anchor="middle" class="t-dim" font-size="11">keep / skip passages</text>
+      <text x="410" y="130" text-anchor="middle" class="t-dim" font-size="11">agent: poll, apply</text>
+
+      <rect x="570" y="40" width="230" height="104" rx="8" class="box-def"/>
+      <text x="685" y="68" text-anchor="middle" class="t-def" font-size="15" font-weight="600">short-pipe</text>
+      <text x="685" y="94" text-anchor="middle" class="t-ink" font-size="12">long video to shorts</text>
+      <text x="685" y="114" text-anchor="middle" class="t-dim" font-size="11">agent picks soundbites</text>
+      <text x="685" y="130" text-anchor="middle" class="t-dim" font-size="11">you trim, 1080x1920 out</text>
+
+      <line x1="252" y1="92" x2="291" y2="92" class="ln-def" stroke-dasharray="5 4" marker-end="url(#a9)"/>
+      <line x1="527" y1="92" x2="566" y2="92" class="ln-def" stroke-dasharray="5 4" marker-end="url(#a9)"/>
+
+      <text x="135" y="26" text-anchor="middle" class="t-dim" font-size="11">raw footage</text>
+      <text x="410" y="26" text-anchor="middle" class="t-dim" font-size="11">long-form edit</text>
+      <text x="685" y="26" text-anchor="middle" class="t-dim" font-size="11">vertical clips</text>
+
+      <rect x="20" y="168" width="780" height="44" rx="8" class="box"/>
+      <text x="410" y="195" text-anchor="middle" class="t-mid" font-size="12">Dashed arrows: this map's reading. No README hands off to the next tool.</text>
+    </svg>
+  </div><figcaption>Three tools, each fed by the output the one before it would produce. The READMEs describe each tool on its own; linking them is our interpretation.</figcaption></figure>
+
+  <p><b>The pattern, and how sure we can be.</b> None of the three READMEs mentions the others. justroll hands off to "your editor", and short-pipe accepts any long video. Still, the shapes match, and his channel gives some evidence. On 2026-06-05 he posted Shorts such as <a class="lnk" href="https://www.youtube.com/shorts/LvZv7OAxt6w" target="_blank" rel="noopener">Interest rate and layoffs</a>, and their transcripts follow passages from his long video of 2026-05-21, <a class="lnk" href="https://www.youtube.com/watch?v=tt_SloZ18Mk&amp;t=151" target="_blank" rel="noopener">AI tech layoffs explained</a>, around the 2:31 mark. The short-pipe repo was created on 2026-06-04. Together that suggests he records a long talking-head video and cuts it into Shorts with his own tools. It does not prove which tool made which clip.</p>
+
+  <h2 id="m87">m87: the agent recommends, you ship</h2>
+  <p>If you let an agent loose on your issues and pull requests, it ends up commenting, closing and merging on your behalf while you aren't looking. m87 splits the job in two. A local background process syncs GitHub, an agent reads each item and recommends an action, and the recommendation waits in a queue:</p>
+  <blockquote class="q">Nothing source-visible happens until you review the exact outgoing action and explicitly approve it.<span class="cite"><a href="https://github.com/kunchenguid/m87" target="_blank" rel="noopener">m87 README</a></span></blockquote>
+  <p>The approval gate is concrete. <code>m87 preview</code> (or the "WILL DO" panel in the terminal inbox) shows the exact effect. Approving needs <code>--confirm</code>, and destructive actions need <code>--confirm-destructive</code>. If you approve a fix, a coding agent opens a <em>draft</em> PR, and m87 never merges it. The agent is reached over ACP (Agent Client Protocol, a standard way for a tool to drive a coding agent such as <code>claude</code>, <code>codex</code> or <code>opencode</code>, which m87 detects). All state lives in SQLite under <code>~/.m87</code>, with no hosted backend.</p>
+  <pre class="code-block"><code>npm install -g @kunchenguid/m87
+m87 init            # guided setup: agent, GitHub repos, run at login?
+m87                 # live inbox: pick an option, read WILL DO, press a</code></pre>
+
+  <h2 id="baby-menu">baby-menu: software that edits itself</h2>
+  <p>Menu-bar apps come with a fixed set of widgets. baby-menu has your agent write new ones instead:</p>
+  <blockquote class="q">You ask for a feature in plain English, the agent writes an extension and it hot reloads into the menu in real time.<span class="cite"><a href="https://github.com/kunchenguid/baby-menu" target="_blank" rel="noopener">baby-menu README</a></span></blockquote>
+  <p>What makes it safe is the Keep / Undo bar. The agent writes widget and layout files under <code>~/.baby-menu/extensions</code>, and after each turn the app reads the actual git or snapshot diff. It labels the change from that diff, not from what the agent says it did, and you keep the turn or throw it away. Bundled "recipes" are short specs that tell the agent how to read real data sources, such as Claude Code or Codex quota, and to check the finished widget against that data. In a <a class="lnk" href="https://www.youtube.com/watch?v=kPN564Kol14&amp;t=752" target="_blank" rel="noopener">July video</a> he shows a baby-menu widget tracking his own quotas. It needs macOS 13 or newer and an agent CLI that is already signed in.</p>
+
+  <h2 id="toys">Toys: trial-by-combat and fly-with-me</h2>
+  <p><b>trial-by-combat</b> is a reply to benchmarks nobody wants to watch. Two LLM agents play Capture the Relic on a 9&times;9 grid. Both move at the same time, bushes, scans and traps hide information, and there is no randomness inside a match, so the same moves always give the same result and replays are exact. Agents play over plain-text HTTP. Every response contains the briefing, the grid and the exact <code>curl</code> to run next, so the agent needs no client library. Every action must carry an <code>intent</code> field saying why.</p>
+  <p><b>fly-with-me</b> has no agent at all. It is a browser page where a bird flies across an endless generated world, with sound synthesized in the browser. <a class="lnk" href="https://kunchenguid.github.io/fly-with-me/" target="_blank" rel="noopener">Open it and press Begin</a>. Leave it alone and the bird flies itself, or drag to steer. A <code>?seed=</code> parameter reopens the same world. It uses WebGPU where available and falls back to WebGL2.</p>
+
+  <h2 id="infra">Infra side builds: runner-up and headless</h2>
+  <p><b>runner-up</b> runs GitHub Actions jobs on machines you already own. One coordinator subscribes to GitHub's runner scale sets and starts a one-job runner on a free "place". A place is a fresh Docker container or KVM VM on Linux, a tart clone or Apple container on a Mac, or an account or Hyper-V VM on Windows, and it is removed when the job ends. Jobs from forked repos are refused by default. The README is candid: it calls the project "young", notes that scale sets are still a GitHub preview, and marks several place types experimental. Docker places share the host kernel, and "host" places aren't fresh at all, so use them only for code you trust.</p>
+  <p><b>headless</b> is an <a class="lnk" href="https://agentskills.io" target="_blank" rel="noopener">Agent Skill</a> (an instruction bundle an agent loads on demand) that turns a machine with a password-protected admin account into one that never sleeps, signs itself in after a restart, accepts only SSH keys, and can join Tailscale. The key design choice is that the admin password stays in your secret store (1Password, Bitwarden, or any command). The agent only names the entry, and the scripts pipe the password through without it appearing on a command line or in a log. Each step can be rerun safely, and the final step reads every setting back and restarts the machine to check. Installing NixOS on a Linux box erases the disk, and the README says so.</p>
+  <pre class="code-block"><code>npx skills add kunchenguid/headless -g
+/headless set up my Mac mini at 192.168.1.20 as a headless machine</code></pre>
+
+  <div class="callout">Next: <a class="lnk" href="p10.html">How Kun builds</a> &middot; Back to <a class="lnk" href="../index.html#reading">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 09 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

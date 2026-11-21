@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>treehouse: worktrees without managing worktrees &mdash; Kun Chen, mapped</title>
+<meta name="description" content="How treehouse gives each parallel coding agent its own git worktree from a reusable pool, so isolation costs nothing and installed dependencies survive between sessions." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#many">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">RUNNING MANY AGENTS &middot; PAGE 06 OF 11</span><span class="mono">treehouse &middot; git worktrees &middot; pools &middot; leases</span></div>
+  <h1>treehouse: worktrees without managing worktrees</h1>
+  <div class="authors">Why parallel agents need separate checkouts, why the obvious ways to give them one are slow or messy, and how a pool of reusable worktrees fixes both.</div>
+  <div class="paperlink" style="border-left-color:var(--def)"><span class="lbl">Source</span><a href="https://github.com/kunchenguid/treehouse" target="_blank" rel="noopener">kunchenguid/treehouse on GitHub &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Two agents editing one directory will trample each other, so each needs its own checkout. A git worktree is the cheap way to get one, but hand-made worktrees pile up as names to remember and directories to clean, and a brand-new one starts without your installed dependencies or build cache. treehouse keeps a pool of worktrees per repository: running <code>treehouse</code> hands you an idle one (or makes one), drops you into a shell inside it, and when you exit it is reset and put back for the next agent with its dependency folders still in place. It is a small Go CLI with no daemon, for macOS, Linux and Windows.</div>
+
+  <p class="lead">Once you run more than one coding agent at a time, the question of <em>where</em> each one works stops being trivial. treehouse is Kun's answer to that question, and its design is mostly a list of the ways the naive answers go wrong.</p>
+
+  <h2 id="worktree">First, what a worktree is</h2>
+  <p>A git repository normally has one working directory: the files you see and edit. A <b>worktree</b> is an additional working directory attached to the same repository. Each worktree has its own checked-out commit, its own branch (or none), its own staged changes and its own untracked files, but all of them share one object database, the store of every commit and file version. So a second worktree costs only the disk space of its checked-out files, not a second copy of the history, and a commit made in one is immediately visible from the others.</p>
+  <p>You make one with <code>git worktree add &lt;path&gt;</code> and remove it with <code>git worktree remove &lt;path&gt;</code>. That is the whole primitive. treehouse is a manager on top of it; it does not replace it.</p>
+
+  <h2 id="why">Why parallel agents need isolation</h2>
+  <p>An agent working on a task edits files, runs builds, runs tests and sometimes commits. Put two of them in the same directory and every one of those actions becomes a collision: one agent's half-finished edit breaks the other's test run, a formatter rewrites a file the other is mid-way through, and a commit sweeps up changes that belonged to someone else. In his <a class="lnk" href="https://www.youtube.com/watch?v=iQyg-KypKAA&amp;t=2199s" target="_blank" rel="noopener">workflow video</a> Kun shows exactly this moment: one agent is already running in the repo, he wants to start another, and he notes that two agents in one directory will step on each other.</p>
+  <p>The fix is not clever coordination between agents. It is to give each one a directory nobody else touches, so that the only place their work meets is in git, through branches and pull requests, where conflicts are explicit and reviewable. The same thinking shows up elsewhere in his tools: <a class="lnk" href="p05.html">no-mistakes</a> runs its validation pipeline in a disposable worktree so nothing it does affects your checkout. treehouse applies it to the agent sessions themselves. (Note the scope: treehouse isolates files on disk. Giving each agent a fresh context window is a separate idea, handled by how you start the agent, not by treehouse.)</p>
+
+  <h2 id="naive">What the obvious approaches cost</h2>
+  <p>There are three things people usually try, and the README opens by naming all three.</p>
+  <ul>
+    <li><b>Several full clones.</b> Works, but each clone is a full copy of the history, has to be fetched separately, and you have to remember which clone holds which task.</li>
+    <li><b>One shared, dirty tree.</b> Cheap, and the collisions above are the price.</li>
+    <li><b>A fresh worktree per session.</b> Isolated and light on disk, but a new worktree contains only tracked files. Everything that is gitignored, such as <code>node_modules</code>, a Python virtual environment or a build cache, is missing, so every session begins with a full install and a cold build.</li>
+  </ul>
+  <blockquote class="q">Or... are you starting a new worktree for every agent session, losing all your installed dependencies and build cache each time, and wondering why your agents are slow?<span class="cite"><a href="https://github.com/kunchenguid/treehouse" target="_blank" rel="noopener">treehouse README</a></span></blockquote>
+  <p>There is also a human cost Kun dwells on in the <a class="lnk" href="https://www.youtube.com/watch?v=iQyg-KypKAA&amp;t=2227s" target="_blank" rel="noopener">same video</a>. Every hand-made worktree needs a name, which nobody wants to invent. Come back to it later and you have to remember what it was for and whether an agent is still running in it. Eventually you have to remove it. He calls each one a kind of debt, and that bookkeeping is what treehouse is built to absorb.</p>
+
+  <h2 id="pool">The pool, the lease and the return</h2>
+  <p>treehouse replaces “make a worktree, use it, delete it” with “borrow one from a pool, use it, give it back.” Each repository gets a pool, stored by default under <code>~/.treehouse/</code>, with up to 16 slots unless you raise <code>max_trees</code>. Pool state is a small file on disk, written under a lock by whichever command is running; there is no background service.</p>
+
+  <figure class="fig wide"><div class="media">
+    <svg class="dg" viewBox="0 0 820 320" role="img">
+      <title>The treehouse pool lifecycle: a worktree is leased from the pool to a session, used, reset and returned warm</title>
+      <rect class="box-def" x="20" y="40" width="170" height="64" rx="10"/>
+      <text class="t-ink" x="105" y="68" text-anchor="middle" font-size="14">Pool</text>
+      <text class="t-dim" x="105" y="88" text-anchor="middle" font-size="10.5">~/.treehouse/&lt;repo&gt;-&lt;id&gt;/</text>
+
+      <rect class="box" x="240" y="40" width="175" height="64" rx="10"/>
+      <text class="t-ink" x="327" y="62" text-anchor="middle" font-size="14">Lease a slot</text>
+      <text class="t-dim" x="327" y="80" text-anchor="middle" font-size="11">reuse an idle, clean one</text>
+      <text class="t-dim" x="327" y="95" text-anchor="middle" font-size="11">or create one (cold)</text>
+
+      <rect class="box" x="460" y="40" width="150" height="64" rx="10"/>
+      <text class="t-ink" x="535" y="68" text-anchor="middle" font-size="14">Session</text>
+      <text class="t-dim" x="535" y="88" text-anchor="middle" font-size="11">subshell or --lease</text>
+
+      <rect class="box-off" x="655" y="40" width="145" height="64" rx="10"/>
+      <text class="t-ink" x="727" y="68" text-anchor="middle" font-size="14">Agent works</text>
+      <text class="t-dim" x="727" y="88" text-anchor="middle" font-size="11">edits and builds</text>
+
+      <rect class="box" x="520" y="196" width="280" height="64" rx="10"/>
+      <text class="t-ink" x="660" y="220" text-anchor="middle" font-size="14">Return</text>
+      <text class="t-dim" x="660" y="240" text-anchor="middle" font-size="11">stop leftover processes, reset to base</text>
+
+      <rect class="box-ok" x="230" y="196" width="240" height="64" rx="10"/>
+      <text class="t-ink" x="350" y="220" text-anchor="middle" font-size="14">Warm slot</text>
+      <text class="t-dim" x="350" y="240" text-anchor="middle" font-size="11">node_modules, build cache kept</text>
+
+      <line class="ln-def" x1="190" y1="72" x2="240" y2="72"/><polygon class="ah-def" points="240,72 231,67 231,77"/>
+      <line class="ln-def" x1="415" y1="72" x2="460" y2="72"/><polygon class="ah-def" points="460,72 451,67 451,77"/>
+      <line class="ln-def" x1="610" y1="72" x2="655" y2="72"/><polygon class="ah-def" points="655,72 646,67 646,77"/>
+      <line class="ln-def" x1="727" y1="104" x2="727" y2="196"/><polygon class="ah-def" points="727,196 722,187 732,187"/>
+      <line class="ln-def" x1="520" y1="228" x2="470" y2="228"/><polygon class="ah-def" points="470,228 479,223 479,233"/>
+      <polyline class="ln-def" fill="none" points="230,228 105,228 105,104"/><polygon class="ah-def" points="105,104 100,113 110,113"/>
+
+      <text class="t-def" x="160" y="150" text-anchor="middle" font-size="11">back in the pool</text>
+      <text class="t-mid" x="717" y="155" text-anchor="end" font-size="11">exit the shell</text>
+      <text class="t-mid" x="717" y="170" text-anchor="end" font-size="11">or treehouse return</text>
+      <text class="t-crit" x="660" y="290" text-anchor="middle" font-size="11">dirty on exit: slot stays out (exit 3)</text>
+    </svg>
+  </div><figcaption>One slot's life. Reuse only happens when the slot is idle, unleased, clean and its commit has landed; otherwise treehouse makes a new, cold slot. Tracked files are reset on return, while gitignored output such as installed dependencies survives, which is what makes the next lease fast.</figcaption></figure>
+
+  <p>When you run <code>treehouse</code> inside a repository, it fetches from <code>origin</code> and then scans the pool for a slot it can safely reuse. “Safely” is strict: the slot must belong to this clone, have nothing running in it, hold no lease, have no uncommitted or untracked changes, and sit on a commit already merged into the target it will be reset to. If one qualifies, it is reset to the latest default branch. If none does, a new worktree is created and added to the pool. Either way it starts in detached HEAD (checked out at a commit, not on a branch) unless you ask for a branch with <code>-b</code>.</p>
+  <p>Then you are dropped into a shell inside the worktree. That shell is the lease. Start your agent there, let it work, and when the shell exits treehouse terminates any processes still running in the directory, checks none remain, resets the worktree and marks it available. The checked-out files go back to the base branch; the gitignored dependency folders and build output stay. The next agent to ask gets a worktree that already has its install done.</p>
+
+  <pre class="code-block"><code>cd myproject
+treehouse              # lease a slot, open a shell in it
+claude                 # or any agent; it works in isolation
+exit                   # slot is reset and returned warm
+treehouse status       # which slots are in use, leased, free</code></pre>
+
+  <p>For scripts and orchestrators that cannot sit in an interactive shell, <code>treehouse get --lease</code> reserves a slot durably and prints only its path (or JSON with a lease id), and <code>treehouse return</code> gives it back. Returns can be made conditional on the lease id, so a retried script cannot release a slot someone else has since acquired, and <code>--if-clean</code> refuses rather than discard uncommitted or unpushed work.</p>
+
+  <h2 id="conflicts">How it knows a slot is busy</h2>
+  <p>The README's “conflict-free” claim is about in-use detection, not merge conflicts. treehouse decides a slot is taken by scanning running processes for any whose working directory is inside it, by honouring short-lived reservations while its own commands run, and by durable leases recorded in its state file. A slot that is busy by any of those measures is never handed out. If it cannot read the process table at all, it reports the slot as unverified rather than guessing. Two agents editing the same lines on different branches will still conflict when their work is merged; treehouse only guarantees they never share a directory.</p>
+  <blockquote class="q">Treehouse helps you manage a pool of reusable, isolated worktrees so each of your agents gets its own environment instantly — no cloning, no conflicts, no coordination overhead.<span class="cite"><a href="https://github.com/kunchenguid/treehouse" target="_blank" rel="noopener">treehouse README</a></span></blockquote>
+
+  <h2 id="where">Where the pool lives, and other knobs</h2>
+  <p>The default global store keeps pools out of your project tree. <code>--root .</code> (or <code>root = "."</code> in a committed <code>treehouse.toml</code>) puts the pool at <code>&lt;repo&gt;/.treehouse/</code> instead, git-ignored automatically, so deleting the project deletes its worktrees too; the trade-off is that <code>treehouse prune --all</code> only sweeps the global root. Other options cover cutting slots from a different base branch, placing worktrees at a custom path for tools that expect a fixed layout, copying selected gitignored files such as <code>.env</code> into each slot via a <code>.worktreeinclude</code> manifest, and running setup commands through a <code>post_create</code> hook.</p>
+
+  <h2 id="limits">Platforms and limits</h2>
+  <ul>
+    <li><b>Platforms:</b> macOS, Linux and Windows, via install scripts, Nix, <code>go install</code> or source. On macOS and Linux the subshell starts as an interactive login shell for bash, fish and zsh; other shells and Windows use their default invocation.</li>
+    <li><b>Warm only on reuse.</b> A freshly created slot is as cold as any new worktree. The speed-up arrives from the second lease of a slot onward.</li>
+    <li><b>A dirty exit leaks the slot.</b> If the agent leaves uncommitted changes, the slot stays out of the pool until someone cleans it or passes <code>--force</code>, and <code>prune</code> will not reclaim it. Pruning and destroying are dry runs unless you add <code>--yes</code>.</li>
+    <li><b>Hooks only from user config.</b> Hooks in a repo's <code>treehouse.toml</code> are ignored, so cloning an untrusted repo and running treehouse cannot execute shell it ships.</li>
+    <li><b>Experimental pieces.</b> The Jujutsu (jj) backend is marked experimental. Copy-on-write sharing of large tracked files is opt-in, macOS/APFS only, and the README presents its timings as prototype measurements, not benchmarks.</li>
+  </ul>
+
+  <div class="callout off"><b>In use:</b> In Larry's setup, treehouse hands out pooled worktrees to coding agents working on the blog.</div>
+
+  <div class="callout">Next: <a class="lnk" href="p07.html">gnhf and firstmate: overnight loops and a crew with one liaison</a> &middot; Back to <a class="lnk" href="../index.html#many">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 06 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

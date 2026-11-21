@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The AXI shelf: gh-axi, chrome-devtools-axi, quota-axi and friends &mdash; Kun Chen, mapped</title>
+<meta name="description" content="What each of Kun Chen's reference AXI tools wraps, what changes for the agent, how they install as skills or session hooks, and how the community catalog grew past his own tools." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#axi">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">INTERFACES FOR AGENTS &middot; PAGE 03 OF 11</span><span class="mono">gh-axi &middot; chrome-devtools-axi &middot; quota-axi &middot; tasks-axi &middot; catalog</span></div>
+  <h1>The AXI shelf: gh-axi, chrome-devtools-axi, quota-axi and friends</h1>
+  <div class="authors">The tools Kun built to the AXI spec: what each one wraps, what the agent gains, how you install them, and who else adopted the pattern.</div>
+  <div class="paperlink" style="border-left-color:var(--off)"><span class="lbl">Source</span><a href="https://github.com/kunchenguid/axi#axi-catalog" target="_blank" rel="noopener">AXI catalog, kunchenguid/axi &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Most of Kun's AXIs do not reimplement anything. They sit in front of a tool that already works (the <code>gh</code> CLI, the chrome-devtools MCP server, each vendor's own quota endpoint) and change only what the agent sees: compact output, a dashboard when called with no arguments, a hint about what to run next, and errors it can act on. quota-axi is the strictest of them: it reports quota and refuses to decide anything. tasks-axi is a newer sibling that edits a markdown backlog and is not in the official catalog. Each one installs as a skill, as a session hook, or with nothing at all.</div>
+
+  <p class="lead">The <a class="lnk" href="p02.html">previous page</a> laid out the ten AXI principles. A spec is only an argument until something is built to it, and Kun's answer was to build the same idea several times over, each time on a different kind of backend.</p>
+
+  <h2 id="wrapper">The wrapper pattern</h2>
+  <p>An AXI (Agent eXperience Interface) is a command-line tool shaped for an agent that drives a shell. The reference implementations are mostly thin layers. The agent runs a short command; the AXI calls the real tool underneath; the AXI then reshapes the answer before the agent reads it. That reshaping is where the value sits. Output comes back as TOON (Token-Oriented Object Notation, a compact text format for tables and objects that the spec credits with about 40% savings over the same data as JSON). Lists say how many items exist and what was cut. Empty results say "0 open" outright rather than printing nothing. Every response ends with a short <code>help</code> block naming the likely next command.</p>
+
+  <figure class="fig wide">
+    <div class="media">
+      <svg class="dg" viewBox="0 0 820 400" role="img" aria-label="An agent calls three AXIs, each of which calls an underlying tool: gh-axi calls the gh CLI, chrome-devtools-axi calls a bridge that holds a chrome-devtools-mcp session, quota-axi calls provider adapters that hit first-party quota endpoints. A strip lists what every AXI adds.">
+        <defs>
+          <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+          <marker id="a3o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-off" d="M0,0 L10,5 L0,10 z"/></marker>
+        </defs>
+        <text class="t-dim" x="90" y="22" text-anchor="middle" font-size="10.5">CALLER</text>
+        <text class="t-off" x="335" y="22" text-anchor="middle" font-size="10.5">THE AXI (WHAT KUN BUILT)</text>
+        <text class="t-dim" x="670" y="22" text-anchor="middle" font-size="10.5">UNDERLYING TOOL</text>
+
+        <rect class="box" x="20" y="125" width="140" height="120" rx="8"/>
+        <text class="t-ink" x="90" y="155" text-anchor="middle" font-size="13">agent</text>
+        <text class="t-dim" x="90" y="180" text-anchor="middle" font-size="10.5">Claude Code</text>
+        <text class="t-dim" x="90" y="198" text-anchor="middle" font-size="10.5">Codex</text>
+        <text class="t-dim" x="90" y="216" text-anchor="middle" font-size="10.5">OpenCode</text>
+        <text class="t-dim" x="90" y="234" text-anchor="middle" font-size="10.5">(any shell)</text>
+
+        <path class="ln-off" d="M160,175 C185,175 185,75 208,75" marker-end="url(#a3o)"/>
+        <path class="ln-off" d="M160,185 L208,185" marker-end="url(#a3o)"/>
+        <path class="ln-off" d="M160,195 C185,195 185,295 208,295" marker-end="url(#a3o)"/>
+
+        <rect class="box-off" x="210" y="35" width="250" height="80" rx="8"/>
+        <text class="t-ink" x="335" y="62" text-anchor="middle" font-size="13">gh-axi</text>
+        <text class="t-mid" x="335" y="82" text-anchor="middle" font-size="10.5">repo dashboard, field selection</text>
+        <text class="t-mid" x="335" y="99" text-anchor="middle" font-size="10.5">gh errors to structured errors</text>
+
+        <rect class="box-off" x="210" y="145" width="250" height="80" rx="8"/>
+        <text class="t-ink" x="335" y="172" text-anchor="middle" font-size="13">chrome-devtools-axi</text>
+        <text class="t-mid" x="335" y="192" text-anchor="middle" font-size="10.5">CLI to bridge on localhost:9224</text>
+        <text class="t-mid" x="335" y="209" text-anchor="middle" font-size="10.5">one MCP session kept alive</text>
+
+        <rect class="box-off" x="210" y="255" width="250" height="80" rx="8"/>
+        <text class="t-ink" x="335" y="282" text-anchor="middle" font-size="13">quota-axi</text>
+        <text class="t-mid" x="335" y="302" text-anchor="middle" font-size="10.5">provider adapters, one schema</text>
+        <text class="t-mid" x="335" y="319" text-anchor="middle" font-size="10.5">data only: never routes</text>
+
+        <path class="ln" d="M460,75 L538,75" marker-end="url(#a3)"/>
+        <path class="ln" d="M460,185 L538,185" marker-end="url(#a3)"/>
+        <path class="ln" d="M460,295 L538,295" marker-end="url(#a3)"/>
+
+        <rect class="box" x="540" y="35" width="260" height="80" rx="8"/>
+        <text class="t-ink" x="670" y="66" text-anchor="middle" font-size="12">gh CLI (official)</text>
+        <text class="t-dim" x="670" y="88" text-anchor="middle" font-size="10.5">then the GitHub API</text>
+
+        <rect class="box" x="540" y="145" width="260" height="80" rx="8"/>
+        <text class="t-ink" x="670" y="176" text-anchor="middle" font-size="12">chrome-devtools-mcp</text>
+        <text class="t-dim" x="670" y="198" text-anchor="middle" font-size="10.5">Chrome via DevTools Protocol</text>
+
+        <rect class="box" x="540" y="255" width="260" height="80" rx="8"/>
+        <text class="t-ink" x="670" y="286" text-anchor="middle" font-size="12">first-party quota endpoints</text>
+        <text class="t-dim" x="670" y="308" text-anchor="middle" font-size="10.5">local auth, each vendor's own API</text>
+
+        <rect class="box-def" x="20" y="350" width="780" height="40" rx="8"/>
+        <text class="t-def" x="410" y="367" text-anchor="middle" font-size="10.5">WHAT EVERY AXI ADDS ON THE WAY BACK</text>
+        <text class="t-mid" x="410" y="383" text-anchor="middle" font-size="10.5">TOON output &#183; next-step help[] &#183; structured errors &#183; definitive empty states &#183; combined operations</text>
+      </svg>
+    </div>
+    <figcaption>The shelf in one picture. The right-hand column already existed; the orange column is the whole contribution, and the teal strip is what it does to every answer. Drawn from the gh-axi, chrome-devtools-axi and quota-axi READMEs.</figcaption>
+  </figure>
+
+  <h2 id="gh-axi">gh-axi: GitHub, through the CLI you already trust</h2>
+  <p><a class="lnk" href="https://github.com/kunchenguid/gh-axi" target="_blank" rel="noopener">gh-axi</a> wraps GitHub's official <code>gh</code> CLI. It covers issues, pull requests, workflow runs, releases, Projects boards, gists, secrets and stacked PRs, and you still need <code>gh</code> installed and logged in. Run it with no arguments and it prints a dashboard of the current repo's open issues and PRs. If a read fails, it says <code>unknown (fetch failed)</code> instead of printing a zero, because to an agent a silent empty list looks like a fact. A <code>--fields</code> flag returns only the columns you ask for. Failures come back once, as a structured error, so a long stream of <code>gh</code> diagnostics doesn't fill the context.</p>
+  <p>The README backs this with a benchmark: 17 GitHub tasks, five repeats each, <code>claude-sonnet-4-6</code> as the agent and an LLM judge. In his runs gh-axi completed every task, against 86% for raw <code>gh</code>. Those numbers are Kun's own and self-reported. The <a class="lnk" href="p02.html">previous page</a> covers what they do and don't show. The limits are practical ones. It needs Node 20+, and a few features need recent <code>gh</code> versions, for example <code>--attach</code> needs gh 2.99.0 or later.</p>
+
+  <h2 id="chrome">chrome-devtools-axi: a browser that stays open</h2>
+  <p><a class="lnk" href="https://github.com/kunchenguid/chrome-devtools-axi" target="_blank" rel="noopener">chrome-devtools-axi</a> wraps <code>chrome-devtools-mcp</code>, an MCP server that drives Chrome (MCP, the Model Context Protocol, is the standard way to plug tool servers into an agent). A CLI process exits after each command, but a browser must survive between them. So the first command starts a small bridge process on localhost port 9224. The bridge holds one long-lived MCP session, and each later command talks to it. The bridge checks its own health and restarts itself if Chrome has died.</p>
+  <p>What the agent sees is a short accessibility snapshot of the page, in which the clickable elements carry refs such as <code>@g1:1</code>, followed by a hint like "Run <code>click @g1:1</code> to click the link". The <code>g1</code> part is a generation number. If the page has changed since the snapshot, the action fails with <code>STALE_REF</code> instead of clicking the wrong thing. In his 14-task browser benchmark (same model, same five repeats), Kun reports 57% fewer input tokens than calling the raw MCP server it wraps. The skill also tells agents to skip Chrome for pages a plain fetch can read.</p>
+  <p>A sibling, <a class="lnk" href="https://github.com/kunchenguid/agent-browser-axi" target="_blank" rel="noopener">agent-browser-axi</a>, applies the same design to Vercel's <code>agent-browser</code>. It installs from npm or source, does not appear in the catalog, and its repo was last pushed on 2026-07-31.</p>
+
+  <h2 id="quota">quota-axi: how much is left, and nothing else</h2>
+  <blockquote class="q">Agents need quota state before they choose where work can safely run.<div class="cite"><a href="https://github.com/kunchenguid/quota-axi" target="_blank" rel="noopener">quota-axi README</a></div></blockquote>
+  <p><a class="lnk" href="https://github.com/kunchenguid/quota-axi" target="_blank" rel="noopener">quota-axi</a> answers one question: how much subscription capacity remains, per provider and per window, and when it resets. Each vendor exposes this differently, through different auth stores, window names and endpoints. quota-axi gives each provider an adapter and maps the results into one schema. Each row carries the percent remaining, a projected runway, a confidence level, the window that is the binding limit, and the reset time. Its README lists about nineteen providers, including Claude, Codex, Cursor, Copilot and Grok. The catalog row names five.</p>
+  <p>It is defined as much by what it refuses to do. It never picks a provider for you:</p>
+  <blockquote class="q">It never routes, ranks a winner, or orders providers preferentially.<div class="cite"><a href="https://github.com/kunchenguid/quota-axi#safety-guarantees" target="_blank" rel="noopener">quota-axi README, Safety guarantees</a></div></blockquote>
+  <p>Nor does it proxy traffic, log in, import browser cookies, or mint or rotate a credential. When a token has expired, it asks the vendor's own CLI to refresh it. It also makes no claim that 40% left on one vendor is worth the same as 40% on another. One provider failing while the rest answer still exits 0, and the report shows the failure, so a periodic check keeps working. The caveats: it needs Node 22.19 or newer, and on macOS it won't read Keychain-held tokens until you run it once with <code>--allow-keychain-prompt</code> and approve the request. Until you do, some providers can show as stale or unavailable.</p>
+  <div class="callout off"><b>In use:</b> In Larry's setup, quota-axi feeds a periodic usage check so the assistant can see how much subscription capacity is left before it starts big work.</div>
+
+  <h2 id="tasks">tasks-axi: a backlog the model doesn't rewrite</h2>
+  <p><a class="lnk" href="https://github.com/kunchenguid/tasks-axi" target="_blank" rel="noopener">tasks-axi</a> differs from the rest because it doesn't wrap another tool. It edits a hand-editable <code>backlog.md</code> in place. Its README names the problem plainly:</p>
+  <blockquote class="q">Every backlog mutation today regenerates markdown through the model, which is expensive output tokens and risks dropped, duplicated, or reordered items.<div class="cite"><a href="https://github.com/kunchenguid/tasks-axi#why" target="_blank" rel="noopener">tasks-axi README, Why</a></div></blockquote>
+  <p>Changing one task's status becomes a short command and a one-line confirmation. The file round-trips byte for byte, so a human can still edit it, and a lockfile plus atomic writes stop a hand edit and a CLI edit from overwriting each other. It borrows dependency edges and a "ready" query from beads. The storage sits behind a small <code>Store</code> interface, so other backends can be added later. Only markdown has shipped so far. SQLite and GitHub, Jira or Linear backends are listed as planned. It is <b>not</b> in the official catalog. One community entry, <code>frontier-axi</code>, already turns its output into tasks-axi tickets.</p>
+
+  <h2 id="install">Installing: skill, hook, or nothing</h2>
+  <p>Every tool on the shelf offers the same three install paths. An Agent Skill is a small folder in a shared format that the agent loads when a task matches its description. In these repos the skill is a stub that points the agent at the live CLI rather than copying its docs, so the instructions don't go stale:</p>
+  <pre class="code-block"><code>npx skills add kunchenguid/gh-axi --skill gh-axi -g      # skill, all projects
+npm install -g gh-axi &amp;&amp; gh-axi setup hooks               # ambient session hook
+# or just tell the agent: Execute `npx -y gh-axi` to get GitHub tools.</code></pre>
+  <p>The second path is the "setup hooks" pattern, which corresponds to the spec's principle 7, ambient context. A SessionStart hook is a command that the agent's harness runs when a conversation opens, with its output fed in as context. <code>gh-axi setup hooks</code> registers one for Claude Code, Codex and OpenCode, so every session starts with the repo's open issues and PRs already visible. You opt in explicitly, the setup is safe to run twice, and it repairs a stale path. The spec warns that this context loads on every session, so it must be tiny. gh-axi, chrome-devtools-axi and tasks-axi all ship <code>setup hooks</code>; the quota-axi README documents only the skill and the CLI. The emphasis differs, too. The AXI spec calls the hook the primary integration and the skill a secondary one, while each tool's own README recommends the skill first. Use either, or both.</p>
+
+  <h2 id="catalog">The catalog grew without him</h2>
+  <p>The official table lists four tools: gh-axi, chrome-devtools-axi, quota-axi and lavish-axi. Lavish gets <a class="lnk" href="p04.html">its own page next</a>. As of 2026-11-21 the community table has 118 entries, generated from a <code>catalog.yaml</code> that contributors add to. They follow the same move Kun made: take a CLI or an MCP server that already works and put the AXI shape on top. <a class="lnk" href="https://github.com/karotkriss/glab-axi" target="_blank" rel="noopener">glab-axi</a> does to GitLab's CLI what gh-axi does to GitHub's. <a class="lnk" href="https://github.com/JarvusInnovations/otter-axi" target="_blank" rel="noopener">otter-axi</a> turns Otter.ai's hosted MCP server into a headless CLI, as chrome-devtools-axi does for Chrome. <a class="lnk" href="https://github.com/SSBrouhard/sqlite-axi" target="_blank" rel="noopener">sqlite-axi</a> runs capped, read-only queries. <a class="lnk" href="https://github.com/CodyEngel/axi-axi" target="_blank" rel="noopener">axi-axi</a> scaffolds new AXIs and runs compliance checks against a candidate CLI.</p>
+
+  <div class="callout">Next: <a class="lnk" href="p04.html">Lavish: HTML is the new markdown</a> &middot; Back to <a class="lnk" href="../index.html#axi">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 03 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

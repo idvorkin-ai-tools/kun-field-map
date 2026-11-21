@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Who Kun is, and the bet he is making &mdash; Kun Chen, mapped</title>
+<meta name="description" content="Kun Chen's path from big-tech principal engineer to solo builder, and the thesis behind his agent tools: agents are a new kind of user, and the bottleneck has moved from writing code to specifying, reviewing and verifying it." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#person">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">THE PERSON AND THE BET &middot; PAGE 01 OF 11</span><span class="mono">career &middot; leaving big tech &middot; agent ergonomics</span></div>
+  <h1>Who Kun is, and the bet he is making</h1>
+  <div class="authors">Two decades inside large companies, a career-advice channel, a resignation in April 2026, and the thesis that ties his tools together.</div>
+  <div class="paperlink" style="border-left-color:var(--off)"><span class="lbl">Source</span><a href="https://kunchenguid.substack.com/p/the-month-after-leaving-big-tech" target="_blank" rel="noopener">The Month After Leaving Big Tech (Substack, May 2026) &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Kun Chen spent almost twenty years at Microsoft, Meta and Atlassian, ending as an L8 principal engineer, and left in spring 2026 to build alone. His bet is that coding agents are a new kind of user whose tools were designed for someone else, and that once agents write the code, the scarce resource is human judgment: deciding what to build, reviewing what came back, and proving it works. Nearly every repo on this map makes one of those human steps cheaper, or the agent's side less wasteful.</div>
+
+  <p class="lead">Kun spent his career learning how large engineering organisations turn intent into shipped software, and he now treats a fleet of coding agents as that kind of organisation where he is the director and the only human.</p>
+
+  <h2 id="career">From a hundred side projects to L8</h2>
+  <p>Kun has been coding for almost thirty years. In his April 2026 essay <a class="lnk" href="https://kunchenguid.substack.com/p/zero-to-one-handbook-for-entrepreneurial" target="_blank" rel="noopener">Zero to One &mdash; Handbook for Entrepreneurial Engineers</a> he describes himself as an engineer whose speciality is not a tech stack but taking things from nothing to a working business. He made his first money from a SaaS product he built in high school, and he counts more than a hundred side projects since.</p>
+  <p>Inside big companies the same pattern repeated. He began at Microsoft as a junior developer. The handbook lists the zero-to-one work: founding engineer of Facebook Instant Games, then starting MSN Games at Microsoft, then helping start a suite of AI products for developers at Atlassian. His May essay adds that he worked on Atlassian's Rovo Dev coding agent. He finished as what he calls an L8 senior principal engineer. L8 is a rung on the level ladder most large tech companies share, several above senior; it usually means setting direction for an organisation of hundreds.</p>
+  <p>The handbook argues that you can have a founder's experience inside a large company if you go looking for real problems and earn the trust to act on them.</p>
+
+  <h2 id="channel">The career channel, and an early prediction</h2>
+  <p>Before any of the agent work, Kun ran a small YouTube channel of career advice for software engineers. The public <a class="lnk" href="https://github.com/kunchenguid/kun" target="_blank" rel="noopener">kun repo</a> archives sixteen of those videos, from June 2022 to October 2023. The first, <a class="lnk" href="https://www.youtube.com/watch?v=KElkf1O3FBs" target="_blank" rel="noopener">L8 Explains Career for Software Engineers</a>, maps each level to a scope: L3s complete tasks, L5s own ambiguous problems, L8s are accountable for an organisation's strategy and have to build a culture where hundreds of people decide well without waiting on them.</p>
+  <p>One video from October 2023, <a class="lnk" href="https://www.youtube.com/watch?v=siE6E0yVe7k" target="_blank" rel="noopener">Don't Get Laid Off by AI</a>, reads now like a draft of his later thesis. He argues that a language model does well when someone hands it the right context and a clear task, and badly when handed a vague problem such as an app that feels slow. So the valuable human skill is gathering context and resolving ambiguity, and he tells viewers to aim to be the person directing many models rather than the one being replaced by them. His later tools are built around that split.</p>
+
+  <h2 id="leaving">Why he left</h2>
+  <p>He announced his departure with an AMA on April 6, 2026. In <a class="lnk" href="https://kunchenguid.substack.com/p/the-month-after-leaving-big-tech" target="_blank" rel="noopener">the essay</a> and <a class="lnk" href="https://www.youtube.com/watch?v=GQ0U_gTYMpA" target="_blank" rel="noopener">video</a> written a month later he gives three reasons. Seniority had turned his job into telling other people what to build. AI meant one person could now explore ideas that used to need a team. And his family had the breathing room and savings to try. He is candid that the money does not add up: by his own modelling, even optimistic outcomes do not beat staying.</p>
+  <blockquote class="q off">But I love the process of building, not just the output of it.<span class="cite">&mdash; <a href="https://kunchenguid.substack.com/p/the-month-after-leaving-big-tech" target="_blank" rel="noopener">Kun Chen, The Month After Leaving Big Tech</a></span></blockquote>
+  <p>The plan was an AI tutor for kids, prompted by his eight-year-old son learning to code. As of that May essay the tutor was still the "main quest". The tools came out of friction: building solo with agents exposed pain points the existing tooling did not address, so he published <a class="lnk" href="https://github.com/kunchenguid/gnhf" target="_blank" rel="noopener">gnhf</a>, <a class="lnk" href="https://github.com/kunchenguid/no-mistakes" target="_blank" rel="noopener">no-mistakes</a>, <a class="lnk" href="https://github.com/kunchenguid/treehouse" target="_blank" rel="noopener">treehouse</a> and <a class="lnk" href="https://github.com/kunchenguid/axi" target="_blank" rel="noopener">AXI</a> within weeks, and then more tools to cope with maintaining them. He filters every new idea through a personal mission he wrote down in that essay:</p>
+  <blockquote class="q">I want to empower every individual to discover, pursue and achieve their full potential.<span class="cite">&mdash; <a href="https://kunchenguid.substack.com/p/the-month-after-leaving-big-tech" target="_blank" rel="noopener">Kun Chen, The Month After Leaving Big Tech</a></span></blockquote>
+  <p>The early numbers he reports there (a first repo past a thousand stars, 32 shipped changes on one of the slower days) are his own, from May 2026.</p>
+
+  <h2 id="new-user">The bet, part one: agents are a new kind of user</h2>
+  <p>The framing in this heading is ours, but it describes his work. The <a class="lnk" href="https://github.com/kunchenguid/axi" target="_blank" rel="noopener">AXI README</a> opens by noting that agents reach the outside world through command-line tools that were originally built for humans, or through tool protocols like MCP (the Model Context Protocol, a standard way to expose tools to a model), and that both waste the agent's budget. In his <a class="lnk" href="https://youtu.be/iQyg-KypKAA?t=1399" target="_blank" rel="noopener">June 2026 workflow video</a> he talks about designing tools that treat agents as first-class citizens and optimise for "agent ergonomics".</p>
+  <p>The idea is that an agent is a user with its own limits. It pays for every byte of output in tokens and context. It cannot skim, so a wall of text costs as much as the useful part. It needs to be told when a list is empty or cut short, or it will go looking. Pages 02 and 03 cover the ten principles he wrote for getting them right, and the benchmark he ran on them.</p>
+
+  <h2 id="bottleneck">The bet, part two: the bottleneck moves</h2>
+  <figure class="fig wide"><div class="media">
+    <svg class="dg" viewBox="0 0 820 290" role="img" aria-label="Where the scarce step sits before and after coding agents">
+      <title>The bottleneck moves from writing code to specifying, reviewing and verifying</title>
+      <text class="t-dim" x="20" y="36" font-size="11">BEFORE &#183; the scarce step is writing the code</text>
+      <rect class="box" x="20" y="48" width="170" height="64" rx="10"/>
+      <text class="t-ink" x="105" y="76" text-anchor="middle" font-size="14">specify</text>
+      <text class="t-dim" x="105" y="96" text-anchor="middle" font-size="11">tickets, specs</text>
+      <rect class="box-crit" x="220" y="48" width="190" height="64" rx="10"/>
+      <text class="t-ink" x="315" y="76" text-anchor="middle" font-size="14">write code</text>
+      <text class="t-crit" x="315" y="96" text-anchor="middle" font-size="11">days of human typing</text>
+      <rect class="box" x="440" y="48" width="170" height="64" rx="10"/>
+      <text class="t-ink" x="525" y="76" text-anchor="middle" font-size="14">review</text>
+      <text class="t-dim" x="525" y="96" text-anchor="middle" font-size="11">a teammate's PR</text>
+      <rect class="box" x="640" y="48" width="160" height="64" rx="10"/>
+      <text class="t-ink" x="720" y="76" text-anchor="middle" font-size="14">verify</text>
+      <text class="t-dim" x="720" y="96" text-anchor="middle" font-size="11">QA, tests</text>
+      <line class="ln" x1="190" y1="80" x2="219" y2="80"/><polygon class="ah" points="220,80 212,75 212,85"/>
+      <line class="ln" x1="410" y1="80" x2="439" y2="80"/><polygon class="ah" points="440,80 432,75 432,85"/>
+      <line class="ln" x1="610" y1="80" x2="639" y2="80"/><polygon class="ah" points="640,80 632,75 632,85"/>
+
+      <text class="t-off" x="20" y="156" font-size="11">NOW &#183; the scarce step is human judgment</text>
+      <rect class="box-crit" x="20" y="168" width="170" height="64" rx="10"/>
+      <text class="t-ink" x="105" y="196" text-anchor="middle" font-size="14">specify</text>
+      <text class="t-crit" x="105" y="216" text-anchor="middle" font-size="11">what is worth building</text>
+      <rect class="box-def" x="220" y="168" width="190" height="64" rx="10"/>
+      <text class="t-ink" x="315" y="196" text-anchor="middle" font-size="14">write code</text>
+      <text class="t-def" x="315" y="216" text-anchor="middle" font-size="11">agents, in minutes</text>
+      <rect class="box-crit" x="440" y="168" width="170" height="64" rx="10"/>
+      <text class="t-ink" x="525" y="196" text-anchor="middle" font-size="14">review</text>
+      <text class="t-crit" x="525" y="216" text-anchor="middle" font-size="11">human attention</text>
+      <rect class="box-crit" x="640" y="168" width="160" height="64" rx="10"/>
+      <text class="t-ink" x="720" y="196" text-anchor="middle" font-size="14">verify</text>
+      <text class="t-crit" x="720" y="216" text-anchor="middle" font-size="11">against the intent</text>
+      <line class="ln-off" x1="190" y1="200" x2="219" y2="200"/><polygon class="ah-off" points="220,200 212,195 212,205"/>
+      <line class="ln-off" x1="410" y1="200" x2="439" y2="200"/><polygon class="ah-off" points="440,200 432,195 432,205"/>
+      <line class="ln-off" x1="610" y1="200" x2="639" y2="200"/><polygon class="ah-off" points="640,200 632,195 632,205"/>
+
+      <text class="t-dim" x="105" y="258" text-anchor="middle" font-size="10.5">firstmate, /kun</text>
+      <text class="t-dim" x="105" y="274" text-anchor="middle" font-size="10.5">(p07, p08)</text>
+      <text class="t-dim" x="315" y="258" text-anchor="middle" font-size="10.5">AXI tools</text>
+      <text class="t-dim" x="315" y="274" text-anchor="middle" font-size="10.5">(p02, p03)</text>
+      <text class="t-dim" x="525" y="258" text-anchor="middle" font-size="10.5">Lavish</text>
+      <text class="t-dim" x="525" y="274" text-anchor="middle" font-size="10.5">(p04)</text>
+      <text class="t-dim" x="720" y="258" text-anchor="middle" font-size="10.5">no-mistakes</text>
+      <text class="t-dim" x="720" y="274" text-anchor="middle" font-size="10.5">(p05)</text>
+    </svg>
+  </div>
+  <figcaption>Our sketch; the &ldquo;before&rdquo; row is a simplification. Red marks the step that limits throughput. The bottom row names the tools on this map that target each step.</figcaption></figure>
+  <p>Once agents write code quickly, the slow parts of software are the parts that need a person. In the same <a class="lnk" href="https://youtu.be/iQyg-KypKAA?t=1731" target="_blank" rel="noopener">June video</a> he points out that if every agent diff needs your review, your review capacity caps your velocity, and that nobody became an engineer to read diffs all day. His answer borrows from management. An engineering director does not read every pull request; they shape quality through culture and process and rely on the team. He wants to treat agents the same way, and no-mistakes (page 05) is the process he built for it.</p>
+  <p><a class="lnk" href="https://youtu.be/iQyg-KypKAA?t=2666" target="_blank" rel="noopener">Later in that video</a> he notes that once an orchestrator (a coordinating agent that dispatches and tracks other agents) absorbs the busywork, you start running out of things to ask for. That is the bottleneck moving again, from managing agents to knowing what matters: talking to users and understanding the market. In a <a class="lnk" href="https://youtu.be/MSbacZ99E14?t=2040" target="_blank" rel="noopener">September session</a> he calls human attention and time the scarcest resource in agent work, and in the essay where he packaged himself as a skill he put it bluntly:</p>
+  <blockquote class="q">Right now, if you ask me what my biggest bottleneck is, it’s that all my agents are constantly bottlenecked on my judgment.<span class="cite">&mdash; <a href="https://kunchenguid.substack.com/p/i-distilled-myself-and-you-should" target="_blank" rel="noopener">Kun Chen, I distilled myself, and you should too</a></span></blockquote>
+
+  <h2 id="accountable">Humans stay accountable</h2>
+  <p>Moving the bottleneck does not move the responsibility. In his <a class="lnk" href="https://youtu.be/5N-okeDdIuI?t=2436" target="_blank" rel="noopener">dev-environment video</a> he explains why his system prompt forbids agents from adding themselves as commit co-authors: the human is still the one accountable for the quality of the change. The same principle shapes his validation pipeline. As he describes it in the <a class="lnk" href="https://youtu.be/iQyg-KypKAA?t=1841" target="_blank" rel="noopener">June video</a>, it fixes obvious problems itself but escalates ambiguous ones with product implications to a person. The agent does the work; a human signs for it.</p>
+
+  <h2 id="isolation">Isolation, fresh context, and tools you control</h2>
+  <p>The other recurring design choice is separation. An agent&rsquo;s context window is everything it holds in working memory for one session, and a heavily loaded one performs worse, as he notes in the <a class="lnk" href="https://youtu.be/MSbacZ99E14?t=2026" target="_blank" rel="noopener">September session</a>. His no-mistakes pipeline, as he walks through it in the <a class="lnk" href="https://youtu.be/iQyg-KypKAA?t=1810" target="_blank" rel="noopener">June video</a>, runs validation in an isolated git worktree (a second checkout of the same repository, so the agent's experiments cannot disturb your working copy) and runs its adversarial review in its own fresh context window. Treehouse (page 06) keeps a pool of worktrees ready for parallel sessions, and firstmate (page 07) splits work across separate agent sessions under one coordinator.</p>
+  <p>He also prefers tools he can reshape. In <a class="lnk" href="https://kunchenguid.substack.com/p/kuns-pi-agent-config" target="_blank" rel="noopener">Kun's Pi Agent Config</a> he picks the Pi harness (the program that wraps a model with tools and a loop) because it is provider-neutral, minimal and customisable, so it can keep up as models change. The opinion map in his kun repo, an automated distillation of his posts rather than his own writing, extends this to personal agents: it records him wanting one he owns, where he can switch models and keep his data, rather than one he rents.</p>
+
+  <h2 id="map">How to read the rest of this map</h2>
+  <p>Read the next ten pages as one argument. AXI makes the agent a cheaper user; Lavish and no-mistakes speed up human review and verification; treehouse, gnhf and firstmate let many agents run at once. Backpass and the <a class="lnk" href="https://github.com/kunchenguid/kun" target="_blank" rel="noopener">/kun skill</a>, a daily-refreshed distillation of his opinions, tools and voice that other agents can load, attack the judgment bottleneck directly by writing his judgment down. That last idea gets its own page (page 08).</p>
+
+  <div class="callout">Next: <a class="lnk" href="p02.html">The ten AXI principles, and the benchmark behind them</a> &middot; Back to <a class="lnk" href="../index.html#person">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 01 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

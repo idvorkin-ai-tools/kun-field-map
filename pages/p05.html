@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>no-mistakes: a gate in front of git push &mdash; Kun Chen, mapped</title>
+<meta name="description" content="How no-mistakes puts a local git remote in front of origin, validates each branch in a disposable worktree, fixes the mechanical problems, parks the judgment calls, and only then opens the PR." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#loop">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">THE HUMAN IN THE LOOP &middot; PAGE 05 OF 11</span><span class="mono">no-mistakes &middot; git gate &middot; disposable worktree &middot; review &middot; clean PR</span></div>
+  <h1>no-mistakes: a gate in front of git push</h1>
+  <div class="authors">What happens between &ldquo;the agent says it&rsquo;s done&rdquo; and a pull request someone else has to read.</div>
+  <div class="paperlink" style="border-left-color:var(--off)"><span class="lbl">Source</span><a href="https://github.com/kunchenguid/no-mistakes" target="_blank" rel="noopener">github.com/kunchenguid/no-mistakes &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> no-mistakes adds a second git remote, also called <code>no-mistakes</code>, that sits in front of your real one. Pushing to it starts a pipeline in a throwaway copy of the repo: rebase, an AI code review, tests, a docs pass and lint, and only then the real push, the PR and CI watching. Mechanical problems get fixed automatically; anything that touches what you meant to build stops and waits for you. The bet behind it is that writing code is no longer the slow part. Checking it is.</div>
+
+  <p class="lead">Coding agents produce diffs faster than anyone can read them. The usual safety nets don&rsquo;t fit that pace well. Pre-commit hooks have to stay fast and they block your working tree while they run. CI runs only after the branch is already public, so every failure costs another push and another round of waiting. no-mistakes is Kun&rsquo;s answer to that gap: one deliberate checkpoint, on your machine, before anything leaves it.</p>
+
+  <h2 id="bottleneck">The bottleneck moved</h2>
+  <p>The project&rsquo;s docs open with the premise that runs through most of Kun&rsquo;s tooling:</p>
+  <blockquote class="q">The bottleneck isn&rsquo;t writing code anymore. It&rsquo;s reviewing and validating it.<div class="cite">&mdash; <a href="https://kunchenguid.github.io/no-mistakes/" target="_blank" rel="noopener">no-mistakes docs, home page</a></div></blockquote>
+  <p>If generating a diff is cheap, the expensive part is everything around it: is the branch rebased on current main, did anyone look at it with fresh eyes, do the tests cover what changed, are the docs still true, will lint complain. A human reviewer usually ends up doing all of that by hand, often by rediscovering bugs the author should have caught. no-mistakes moves that work earlier and hands most of it to agents, so that by the time a person sees the PR, the routine questions already have answers attached.</p>
+
+  <h2 id="mechanism">A second remote, not a hook</h2>
+  <p>The core design choice is that no-mistakes is a <em>named remote</em>, not something that hijacks <code>origin</code>. Running <code>no-mistakes init</code> creates a local bare git repo (a repo with history but no checked-out files) under <code>~/.no-mistakes/repos/</code>, installs receive hooks in it, starts a background daemon, and adds a remote called <code>no-mistakes</code> to your project that points at that bare repo. <code>git push origin</code> still does exactly what it always did. <code>git push no-mistakes</code> is the explicit way to say &ldquo;this one goes through the gate.&rdquo;</p>
+  <blockquote class="q off">The point is not to hide Git. The point is to create one deliberate place where validation can happen before a branch is shared.<div class="cite">&mdash; <a href="https://kunchenguid.github.io/no-mistakes/concepts/gate-model/" target="_blank" rel="noopener">no-mistakes docs, The Gate Model</a></div></blockquote>
+  <p>When a push lands in the gate, the daemon creates a disposable <em>worktree</em> for the run. A worktree is a second checkout of the same repository in a different directory, so the pipeline can edit files, run tests and commit fixes without touching the checkout you are working in. You keep coding; the gate works on its own copy.</p>
+
+  <figure class="fig wide"><div class="media"><svg class="dg" viewBox="0 0 820 370" role="img" aria-label="Push path: your branch is pushed to the no-mistakes remote, a local gate starts a disposable worktree that runs intent, rebase, review, test, docs, lint, push, PR and CI. Findings either get auto-fixed or are parked for the human; a green run reaches origin as a PR.">
+    <rect class="box" x="20" y="20" width="150" height="54" rx="6"/>
+    <text class="t-ink" x="95" y="43" text-anchor="middle" font-size="12">your branch</text>
+    <text class="t-dim" x="95" y="61" text-anchor="middle" font-size="10.5">you keep working</text>
+    <text class="t-def" x="255" y="38" text-anchor="middle" font-size="11">git push no-mistakes</text>
+    <line class="ln-def" x1="170" y1="50" x2="332" y2="50"/>
+    <polygon class="ah-def" points="340,50 330,45 330,55"/>
+    <rect class="box-def" x="340" y="20" width="200" height="54" rx="6"/>
+    <text class="t-ink" x="440" y="43" text-anchor="middle" font-size="12">local gate</text>
+    <text class="t-dim" x="440" y="61" text-anchor="middle" font-size="10.5">bare repo · hooks · daemon</text>
+    <text class="t-dim" x="565" y="42" font-size="10.5">origin is untouched:</text>
+    <text class="t-dim" x="565" y="58" font-size="10.5">git push origin works as before</text>
+    <line class="ln-def" x1="440" y1="74" x2="440" y2="102"/>
+    <polygon class="ah-def" points="440,110 435,100 445,100"/>
+    <rect class="box-def" x="20" y="110" width="780" height="120" rx="8"/>
+    <text class="t-def" x="36" y="132" font-size="11.5">disposable worktree &#8212; your checkout stays put</text>
+    <text class="t-dim" x="284" y="160" text-anchor="middle" font-size="10.5">local checks, in a fixed order</text>
+    <text class="t-dim" x="662" y="160" text-anchor="middle" font-size="10.5">publish</text>
+    <rect class="box" x="37" y="170" width="74" height="40" rx="5"/><text class="t-ink" x="74" y="194" text-anchor="middle" font-size="11">intent</text>
+    <rect class="box" x="121" y="170" width="74" height="40" rx="5"/><text class="t-ink" x="158" y="194" text-anchor="middle" font-size="11">rebase</text>
+    <rect class="box" x="205" y="170" width="74" height="40" rx="5"/><text class="t-ink" x="242" y="194" text-anchor="middle" font-size="11">review</text>
+    <rect class="box" x="289" y="170" width="74" height="40" rx="5"/><text class="t-ink" x="326" y="194" text-anchor="middle" font-size="11">test</text>
+    <rect class="box" x="373" y="170" width="74" height="40" rx="5"/><text class="t-ink" x="410" y="194" text-anchor="middle" font-size="11">docs</text>
+    <rect class="box" x="457" y="170" width="74" height="40" rx="5"/><text class="t-ink" x="494" y="194" text-anchor="middle" font-size="11">lint</text>
+    <rect class="box-ok" x="541" y="170" width="74" height="40" rx="5"/><text class="t-ok" x="578" y="194" text-anchor="middle" font-size="11">push</text>
+    <rect class="box-ok" x="625" y="170" width="74" height="40" rx="5"/><text class="t-ok" x="662" y="194" text-anchor="middle" font-size="11">PR</text>
+    <rect class="box-ok" x="709" y="170" width="74" height="40" rx="5"/><text class="t-ok" x="746" y="194" text-anchor="middle" font-size="11">CI</text>
+    <text class="t-mid" x="300" y="256" text-anchor="middle" font-size="10.5">each step passes, or stops with a finding</text>
+    <line class="ln" x1="170" y1="230" x2="170" y2="282"/>
+    <polygon class="ah" points="170,290 165,280 175,280"/>
+    <line class="ln-off" x1="460" y1="230" x2="460" y2="282"/>
+    <polygon class="ah-off" points="460,290 455,280 465,280"/>
+    <line class="ln-def" x1="746" y1="230" x2="746" y2="282"/>
+    <polygon class="ah-def" points="746,290 741,280 751,280"/>
+    <rect class="box" x="30" y="290" width="280" height="58" rx="6"/>
+    <text class="t-ink" x="170" y="314" text-anchor="middle" font-size="12">auto-fix</text>
+    <text class="t-dim" x="170" y="333" text-anchor="middle" font-size="10.5">mechanical: applied, re-checked</text>
+    <rect class="box-off" x="330" y="290" width="260" height="58" rx="6"/>
+    <text class="t-off" x="460" y="314" text-anchor="middle" font-size="12">parked for you</text>
+    <text class="t-dim" x="460" y="333" text-anchor="middle" font-size="10.5">judgment call: approve · fix · skip</text>
+    <rect class="box-ok" x="610" y="290" width="190" height="58" rx="6"/>
+    <text class="t-ok" x="705" y="314" text-anchor="middle" font-size="12">origin + PR</text>
+    <text class="t-dim" x="705" y="333" text-anchor="middle" font-size="10.5">evidence-backed PR</text>
+  </svg></div>
+  <figcaption>The push path. Nothing reaches origin until the six local checks are green; findings either loop through auto-fix (a few attempts per step by default) or wait in the TUI for your decision. After the PR opens, the CI step keeps watching and repairing.</figcaption></figure>
+
+  <p>The contract is stated plainly in the README:</p>
+  <blockquote class="q">The initial change reaches the configured push target only after every local gate is green.<div class="cite">&mdash; <a href="https://github.com/kunchenguid/no-mistakes" target="_blank" rel="noopener">no-mistakes README</a></div></blockquote>
+
+  <h2 id="steps">Nine steps, in a fixed order</h2>
+  <p>The pipeline is deliberately not configurable in shape. A repository can choose the lint, format and test commands, tune how many auto-fix attempts each step gets, and add extra gates after a core step, but it cannot remove or reorder the core steps. That rigidity is the point: &ldquo;passed the gate&rdquo; should mean the same thing in every repo.</p>
+  <div class="scroll"><table class="kv">
+    <tr><td><b>intent</b></td><td>Work out what the change was for: taken from the task you gave, or inferred from recent local agent session transcripts. Later prompts and the PR body use it.</td></tr>
+    <tr><td><b>rebase</b></td><td>Fetch fresh upstream and rebase, so every later check runs against current code. If nothing is left after the rebase, the run stops.</td></tr>
+    <tr><td><b>review</b></td><td>An AI code review of the diff in its own fresh context. Its default auto-fix limit is 0: review findings need your approval.</td></tr>
+    <tr><td><b>test</b></td><td>Targeted checks of the change against the intent, with recorded evidence when intent is known. Not a substitute for a full CI suite.</td></tr>
+    <tr><td><b>document</b></td><td>Update docs the change made stale; report the gaps it can&rsquo;t close.</td></tr>
+    <tr><td><b>lint</b></td><td>Lint and formatting last among local checks, so it doesn&rsquo;t churn over code that is still moving.</td></tr>
+    <tr><td><b>push &middot; pr &middot; ci</b></td><td>Push to the real target (refusing a force-push that would drop commits it never saw), open or update the PR, then watch CI and mergeability and repair failures.</td></tr>
+  </table></div>
+  <p>The order has reasons, and the <a href="https://kunchenguid.github.io/no-mistakes/concepts/pipeline/" target="_blank" rel="noopener">pipeline page</a> spells them out: review comes before test so the reviewer reads the code as written, not code the pipeline has already patched; docs follow tests so they describe code known to work. The CI step is careful about its own repairs. A fix it can prove builds on the commit you already reviewed is published directly; anything else, including every merge-conflict repair, goes back through review first.</p>
+
+  <h2 id="parked">Auto-fix versus parked</h2>
+  <p>Every finding carries a severity and an action: <em>auto-fix</em>, <em>ask-user</em> or <em>no-op</em>. The split is the most interesting idea in the tool. A missing import, a formatter diff, a stale README line or a red CI job is mechanical. There is one right answer, and an agent can apply it and re-run the check. A reviewer saying &ldquo;this changes the default behaviour for existing users&rdquo; is not mechanical. It is a question about what you meant, and no amount of retrying will answer it.</p>
+  <p>So the pipeline fixes the first kind and parks the second. A parked run waits in the TUI (terminal UI) with the finding in front of you, and you approve, fix, skip, or abort. In a talk walking through his workflow, Kun describes it the same way: obvious problems get self-corrected, while ambiguous ones with product implications are escalated to a human after review (<a href="https://youtu.be/iQyg-KypKAA?t=1819" target="_blank" rel="noopener">video, 30:19</a>). The human&rsquo;s attention is spent only where a human is actually needed.</p>
+
+  <h2 id="entry">Three ways in</h2>
+  <pre class="code-block"><code>no-mistakes init                  # gate + remote + agent skill, once per repo
+git push no-mistakes my-branch    # explicit path, committed branch
+no-mistakes                       # TUI: wizard commits/pushes, then attaches
+/no-mistakes add a --json flag    # inside a coding agent: do the task, then gate it</code></pre>
+  <p>The third entry point matters most for agent workflows. <code>init</code> installs a <code>/no-mistakes</code> skill for Claude Code and other agents; the skill drives <code>no-mistakes axi</code>, a non-interactive interface that prints TOON (Token-Oriented Object Notation, a compact JSON alternative designed for model context) following Kun&rsquo;s <a class="lnk" href="p02.html">AXI principles</a>. So an agent reaches the same approval points you see in the TUI and relays the parked ones to you. The pipeline itself is agent-agnostic: claude, codex, grok, opencode, copilot, pi and several others are supported directly, others via ACP (Agent Client Protocol) through <code>acpx</code>, with ordered fallbacks if one is unavailable.</p>
+
+  <h2 id="when">When Kun turns it on, and what it says about PRs</h2>
+  <p>Kun does not run it on everything. His rule of thumb, repeated across his videos, is about stakes rather than complexity: if this is a change you would otherwise ask a human peer to review, gate it; if you would not, don&rsquo;t bother (<a href="https://youtu.be/kPN564Kol14?t=3174" target="_blank" rel="noopener">video, 52:54</a>; <a href="https://youtu.be/MSbacZ99E14?t=2413" target="_blank" rel="noopener">video, 40:13</a>). The pipeline is slow and token-hungry, so prototypes and toy projects skip it, and his orchestrator carries a per-project policy for which repos need it. For his open-source repos he goes further: he says he requires PRs to be raised through no-mistakes so there is a minimum quality bar before he looks (<a href="https://youtu.be/_cVWs9pPFDI?t=746" target="_blank" rel="noopener">video, 12:26</a>).</p>
+  <p>That fits a broader view of where pull requests are heading. The automated distillation of his opinions in his public <code>kun</code> repo summarises it as PRs becoming less central as review shifts from a second human reading code to the author steering and checking agent output, with CI babysitting delegated to agents. You can see the same idea in how he uses the output: he says he never watches the pipeline run, and comes back only when it reports all checks passed, then reads a PR that states the original intent, what changed, how it was tested, with clickable evidence (<a href="https://youtu.be/iQyg-KypKAA?t=1906" target="_blank" rel="noopener">video, 31:46</a>). The PR becomes a report to judge rather than a diff to rediscover.</p>
+
+  <h2 id="limits">Limits and caveats</h2>
+  <ul>
+    <li><b>Cost and time.</b> A full run is several agent passes plus tests and CI. Kun himself calls it long and expensive in tokens, which is why he reserves it for changes that deserve a reviewer.</li>
+    <li><b>Needs a working agent.</b> Every gate requires a runnable configured pipeline agent; there is no agent-free mode.</li>
+    <li><b>Opinionated by design.</b> The nine core steps cannot be removed or reordered. If your team&rsquo;s process differs, you add gates around them, not instead of them.</li>
+    <li><b>The test step is targeted.</b> It validates the change and intent locally; it is explicitly not a full CI suite, so CI still owns cross-platform coverage.</li>
+    <li><b>Trust is earned, not assumed.</b> An AI reviewer can miss things. The tool keeps you in the loop for judgment calls, but whether its review is good enough for a given repo is something to calibrate against your own reviews over time.</li>
+  </ul>
+
+  <div class="callout off"><b>In use:</b> In Larry&rsquo;s setup, no-mistakes is installed and used as the gate for pull requests sent to Kun&rsquo;s own repositories.</div>
+
+  <div class="callout">Next: <a class="lnk" href="p06.html">treehouse: worktrees without managing worktrees</a> &middot; Back to <a class="lnk" href="../index.html#loop">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 05 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>

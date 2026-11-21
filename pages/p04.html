@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lavish: HTML is the new markdown &mdash; Kun Chen, mapped</title>
+<meta name="description" content="How lavish-axi turns an agent's HTML artifact into a review surface: open it in a local browser, annotate elements and text, and let the agent long-poll for your notes and revise the file." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../paper.css" />
+</head>
+<body>
+<header class="bar"><div class="bar-in">
+  <div class="brand"><span class="dot"></span>KUN&nbsp;//&nbsp;FIELD&nbsp;MAP</div>
+  <a class="back" href="../index.html#loop">&larr; the map</a>
+</div></header>
+<main>
+  <div class="eyebrow"><span class="box wb mono">THE HUMAN IN THE LOOP &middot; PAGE 04 OF 11</span><span class="mono">lavish-axi &middot; annotate &middot; poll &middot; playbooks</span></div>
+  <h1>Lavish: HTML is the new markdown</h1>
+  <div class="authors">Why Kun wants agents to answer in web pages, and the review loop that lets you mark up a page instead of typing corrections into chat.</div>
+  <div class="paperlink" style="border-left-color:var(--def)"><span class="lbl">Source</span><a href="https://github.com/kunchenguid/lavish-axi" target="_blank" rel="noopener">kunchenguid/lavish-axi on GitHub &#8599;</a></div>
+  <div class="tldr"><b>TL;DR &mdash;</b> Coding agents can already write a good HTML page: a plan with diagrams, a comparison table, a clickable prototype. The weak part is what happens next, when you have to describe your changes back in chat. Lavish opens the agent's HTML file in a local browser, lets you click any element or select any text and attach a note, and hands those notes to the agent, which waits on a long poll and then rewrites the file. It is a CLI built on Kun's AXI rules, it runs locally, and setup is one skill install.</div>
+
+  <p class="lead">Markdown became the default format for agent output because it renders in a terminal and a chat window. It also caps what an answer can be: headings, bullets, a code block, maybe a table. A plan that needs a system diagram, three design options side by side, or a prototype you can click has nowhere to go. Kun's view is that agents are already fluent in HTML, so the format should be HTML, and the missing piece is a way to review it.</p>
+
+  <blockquote class="q">HTML is the new markdown. Lavish is the new editor for your HTML artifacts.<span class="cite"><a href="https://github.com/kunchenguid/lavish-axi" target="_blank" rel="noopener">lavish-axi README</a></span></blockquote>
+
+  <h2 id="why">Why HTML needs its own review tool</h2>
+  <p>Asking an agent for an HTML artifact is easy. Giving feedback on one is where it breaks down. You open the file, find the box that is wrong, take a screenshot or write "the third card in the second row, the one about caching", and paste that into chat. The agent has to work out which element you meant, and you have turned an interactive page back into a static picture plus a paragraph of prose. The README puts the cost in one line:</p>
+
+  <blockquote class="q">That loses the thing HTML is best at: interactivity.<span class="cite"><a href="https://github.com/kunchenguid/lavish-axi" target="_blank" rel="noopener">lavish-axi README</a></span></blockquote>
+
+  <p>Lavish fixes the feedback step, not the writing step. The agent still writes an ordinary HTML file on disk. Lavish serves it in a browser tab with a small review layer around it, so the place where you notice a problem and the place where you comment on it are the same place.</p>
+
+  <h2 id="loop">The review loop</h2>
+  <figure class="fig wide">
+    <div class="media">
+      <svg class="dg" viewBox="0 0 820 300" role="img">
+        <title>The Lavish review loop: agent writes HTML, Lavish opens it, the human annotates, the agent polls for notes and revises</title>
+        <rect class="box-def" x="30" y="30" width="250" height="86" rx="10"/>
+        <text class="t-ink" x="155" y="58" text-anchor="middle" font-size="13">1 · Agent writes HTML</text>
+        <text class="t-dim" x="155" y="80" text-anchor="middle" font-size="11">plan.html on disk</text>
+        <text class="t-dim" x="155" y="98" text-anchor="middle" font-size="11">playbooks + design guide</text>
+
+        <rect class="box" x="540" y="30" width="250" height="86" rx="10"/>
+        <text class="t-ink" x="665" y="58" text-anchor="middle" font-size="13">2 · lavish-axi plan.html</text>
+        <text class="t-dim" x="665" y="80" text-anchor="middle" font-size="11">local server, browser tab</text>
+        <text class="t-dim" x="665" y="98" text-anchor="middle" font-size="11">sandboxed iframe + SDK</text>
+
+        <rect class="box-off" x="540" y="190" width="250" height="86" rx="10"/>
+        <text class="t-ink" x="665" y="218" text-anchor="middle" font-size="13">3 · Human annotates</text>
+        <text class="t-dim" x="665" y="240" text-anchor="middle" font-size="11">element · text · whiteboard</text>
+        <text class="t-dim" x="665" y="258" text-anchor="middle" font-size="11">Queue, then Send to Agent</text>
+
+        <rect class="box-def" x="30" y="190" width="250" height="86" rx="10"/>
+        <text class="t-ink" x="155" y="218" text-anchor="middle" font-size="13">4 · lavish-axi poll</text>
+        <text class="t-dim" x="155" y="240" text-anchor="middle" font-size="11">blocks until notes arrive</text>
+        <text class="t-dim" x="155" y="258" text-anchor="middle" font-size="11">returns them as TOON</text>
+
+        <line class="ln" x1="280" y1="73" x2="531" y2="73"/><polygon class="ah" points="540,73 531,68 531,78"/>
+        <text class="t-mid" x="410" y="64" text-anchor="middle" font-size="11">open or resume</text>
+
+        <line class="ln-off" x1="665" y1="116" x2="665" y2="181"/><polygon class="ah-off" points="665,190 660,181 670,181"/>
+        <text class="t-off" x="677" y="157" font-size="11">review</text>
+
+        <line class="ln-off" x1="540" y1="233" x2="289" y2="233"/><polygon class="ah-off" points="280,233 289,228 289,238"/>
+        <text class="t-mid" x="410" y="224" text-anchor="middle" font-size="11">notes queued on server</text>
+
+        <line class="ln-def" x1="155" y1="190" x2="155" y2="125"/><polygon class="ah-def" points="155,116 150,125 160,125"/>
+        <text class="t-def" x="167" y="157" font-size="11">revise, reload</text>
+
+        <text class="t-ink" x="410" y="146" text-anchor="middle" font-size="12">Seen · Working · Done</text>
+        <text class="t-dim" x="410" y="164" text-anchor="middle" font-size="10.5">receipts on every note</text>
+      </svg>
+    </div>
+    <figcaption>One turn of the loop. The session is keyed by the HTML file's path, so the agent needs no session ID. Receipts light up from what the server observes: a poll took the note, the file changed, the agent replied.</figcaption>
+  </figure>
+
+  <p>The loop has four steps. The agent writes an HTML file. It runs <code>lavish-axi &lt;file&gt;</code>, which starts (or reuses) one background server and opens a browser tab. The artifact runs inside a sandboxed iframe, and Lavish injects a small script for annotations and layout checks, but no styles of its own, so the saved file looks the same whether you open it through Lavish or straight from disk.</p>
+  <p>You click an element or select a passage, type a note, and queue it. Notes collect until you press Send. Meanwhile the agent has run <code>lavish-axi poll &lt;file&gt;</code>, a long poll: one command that blocks until there is something to return, instead of the agent re-checking every few seconds and paying tokens for each empty check. When you send, the poll returns your notes with what each was attached to. The agent edits the file, Lavish live-reloads the tab while keeping your scroll position and any half-typed note, and the agent posts a short reply into the page's conversation panel. When you are done, End session tells the agent to stop polling, and a plain reopen afterwards is refused unless you ask for more review.</p>
+
+  <h2 id="targets">What you can point at</h2>
+  <ul>
+    <li><b>Elements and text.</b> A note carries the element's CSS locator, or the selected text with range anchors. Inside a table it also names the visible row and column, so sorting the table does not make a note look misdirected.</li>
+    <li><b>Mermaid whiteboards.</b> Mermaid is a text syntax for flowcharts and sequence diagrams. If you ask for an editable whiteboard, the agent writes the diagram in Mermaid and Lavish turns it into an Excalidraw canvas you can drag and redraw. Your edits go back as a summary plus a scene file; the agent then updates the Mermaid source, which stays the source of truth. Otherwise the default figure is hand-drawn inline SVG.</li>
+    <li><b>Images.</b> Paste or drop a reference screenshot onto a note. The agent receives a local file path, not raw bytes.</li>
+    <li><b>Layout problems.</b> After the page settles, Lavish checks for clipped text and controls pushed off screen, and lists them in an inbox. Detection never wakes the agent; only you choosing to queue a fix does.</li>
+    <li><b>Answers.</b> A decision page can have real radio buttons and inputs, and their values come back as structured answers rather than prose.</li>
+  </ul>
+
+  <h2 id="playbooks">Playbooks: teaching the agent to draw</h2>
+  <p>A review tool does not help much if the first draft is a wall of text. Lavish ships guidance for the writing side. <code>lavish-axi design</code> prints design direction, and <code>lavish-axi playbook &lt;id&gt;</code> prints focused advice for a kind of artifact: diagram, table, comparison, plan, code, input, explanation, slides. The agent is told to open every playbook that matches before writing, since one plan often includes a comparison and a diagram. An optional revisions legend lets the agent tag which blocks changed in each round, so a one-sentence fix on a long page is easy to find.</p>
+
+  <h2 id="axi">AXI, applied</h2>
+  <p>Lavish is an AXI, Kun's name for a CLI designed for agents (see <a class="lnk" href="p02.html">the ten principles</a>). Three of those principles carry most of the weight here. Output is TOON, a compact text format that Kun's spec says saves about 40% of tokens against equivalent JSON. The poll is a long poll, so waiting for a human costs one command, not a stream of retries. And contextual disclosure means each response suggests the likely next commands, so the agent learns the tool by using it rather than by reading a manual first.</p>
+  <p>The same idea shapes how it is installed. The skill is a short stub that points the agent at <code>--help</code>, <code>design</code> and <code>playbook</code>, so an old installed copy cannot drift from a newer CLI. Lavish declares no MCP server (MCP, the Model Context Protocol, is the usual way to hand an agent a tool); the CLI is the whole interface.</p>
+
+  <h2 id="local">Local-first, and where that stops</h2>
+  <p>The core loop needs no cloud: the file, the server and the session state live on your machine, under <code>~/.lavish-axi/</code>. A few things to know before relying on it:</p>
+  <ul>
+    <li><b>Sharing is a third party.</b> <code>lavish-axi share</code> uploads the page to ht-ml.app, which is not part of Lavish. Shares are public by default; <code>--private</code> adds a generated password. The host has no delete, so unpublishing swaps in a locked placeholder.</li>
+    <li><b>Phone review trusts your network.</b> With Tailscale running, the server also listens on the tailnet address so you can review from a phone. The README warns that this exposes an unauthenticated server that can read local files to anything on that network, so the tailnet must be trusted.</li>
+    <li><b>Telemetry is on by default</b> in the npm release: command name, version and platform, no arguments or content. <code>LAVISH_AXI_TELEMETRY=0</code> turns it off.</li>
+    <li><b>Tab-local drafts.</b> Notes you have queued but not sent live in that browser tab only; closing it can lose them.</li>
+  </ul>
+
+  <h2 id="kun">How Kun routes work through it</h2>
+  <p>Kun's public <a class="lnk" href="https://github.com/kunchenguid/kun" target="_blank" rel="noopener">kun repo</a> includes an <code>ENTRY.md</code> that tells an agent how to work "like Kun". Its planning and explainer steps both start by reading the Lavish skill and building an interactive artifact: findings, proposals and open questions for a plan; the most direct path to understanding for an explainer. Feedback in Lavish is answered by revising the artifact until the plan is approved. One line in it sums up the style:</p>
+
+  <blockquote class="q">Aggressively avoid long text prose and prefer big picture SVG diagrams to explain concepts.<span class="cite"><a href="https://github.com/kunchenguid/kun/blob/main/ENTRY.md" target="_blank" rel="noopener">kunchenguid/kun, ENTRY.md</a></span></blockquote>
+
+  <p>He uses it outside planning too. In his essay on <a class="lnk" href="https://kunchenguid.substack.com/p/your-agentsmd-is-a-neural-net" target="_blank" rel="noopener">treating AGENTS.md like a neural net</a>, proposed rule edits are shown in Lavish with their diffs and evidence, and he accepts or rejects each one. In a <a class="lnk" href="https://youtu.be/iQyg-KypKAA?t=1465" target="_blank" rel="noopener">workflow video</a> he calls it central to how he plans complex work, then runs the same feature request with and without it to show the difference.</p>
+
+  <h2 id="install">Installing it</h2>
+  <pre class="code-block"><code>npx skills add kunchenguid/lavish-axi --skill lavish   # add -g for all projects
+# then, in Claude Code:
+/lavish let's discuss our plan here</code></pre>
+  <p>No npm install is needed; the skill runs the CLI through <code>npx -y lavish-axi</code>. Two alternatives: tell any agent to use <code>npx -y lavish-axi</code> with nothing installed, or install globally and run <code>lavish-axi setup hooks</code>, which adds a session-start hook for Claude Code, Codex, OpenCode and GitHub Copilot CLI so a fresh session can resume an in-flight review. The <a class="lnk" href="https://www.npmjs.com/package/lavish-axi" target="_blank" rel="noopener">npm package</a> is the source of releases.</p>
+
+  <div class="callout off"><b>In use:</b> Used daily in Larry's setup: plans, comparisons and reviews become Lavish pages that get annotated in the browser instead of answered in long chat replies.</div>
+
+  <div class="callout">Next: <a class="lnk" href="p05.html">no-mistakes: a gate in front of git push</a> &middot; Back to <a class="lnk" href="../index.html#loop">the map</a>.</div>
+</main>
+<footer>Original explanation of Kun Chen's public work, page 04 of 11. Summaries and framing are ours; quotes are his and link to the source. Part of <a href="../index.html">the Kun Chen field map</a>.</footer>
+<!-- Private comments mode, inert unless ?annotate=1 (see assets/annotate.js in idvorkin-ai-tools.github.io) -->
+<script src="https://idvorkin-ai-tools.github.io/assets/annotate.js" defer></script>
+</body>
+</html>
